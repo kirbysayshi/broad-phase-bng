@@ -1,4 +1,21 @@
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.js"></script>
+
+# Broad Phase Collision Detection Using Spatial Partitioning
+# Two Approaches to Broad Phase Collision Detection Using Spatial Partitioning
+
+
+<canvas id="ro-canvas" width="546" height="410"></canvas>
+
+<!--<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.math.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.world.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.brute-force.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.hshg.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.spatial-grid.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.screen.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.entity.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.input.js"></script>-->
+
+<!--<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.math.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.world.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.brute-force.js"></script>
@@ -6,9 +23,9 @@
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.spatial-grid.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.screen.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.entity.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.input.js"></script>-->
 
-# Broad Phase Collision Detection Using Spatial Partitioning
-# Two Approaches to Broad Phase Collision Detection Using Spatial Partitioning
+<!--<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/bruteforce/orbit-01.js"></script>-->
 
 ## intro
 
@@ -53,6 +70,17 @@ bng.world        | ro.World      | global reference to the world
 bng.world.screen | ro.Screen     | global reference to the screen
 ov3              | none          | references ro.ov3, for vector operations
 
+The world also uses the following order for each step of the simulation:
+
+- Clear the screen
+- Accelerate all entities, update their AABBs
+- Call the collision system's `update` method
+- Call the collision system's `queryForCollisionPairs` method
+- Call the user-defined `handleCollisions`
+- Apply inertia to all entities, update their AABBs
+- Call the user-defined `update`
+- Call `draw`
+
 Let's get started!
 
 ## Attempt #1: Brute Force
@@ -71,7 +99,11 @@ In nearly any collision detection scheme, every object must be tested or touched
 | ... ||
 | 100 | 4950 |
 
+The equation for this series is `n(n - 1) / 2`.
+
 This quickly becomes the biggest bottleneck of the game. But here's how to do it anyway! Even though this should not be used as the primary broad phase technique, it is often used as an internal component to a more complex technique.
+
+
 
 ## Attempt #2: Bins / Spatial Partioning
 - talk about quadtrees? BSP trees?
