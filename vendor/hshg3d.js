@@ -660,7 +660,7 @@ Grid.prototype.expandGrid = function(){
 		this.removeObject(allObjects[i]);
 	}
 	
-	// reset grid values, set new grid to be 4x larger than last
+	// reset grid values, set new grid to be 8x larger than last
 	this.oneDCellCount = newOneDCellCount;
 	this.allCells = Array(newCellCount);
 	this.xyzHashMask = newXYZHashMask;
