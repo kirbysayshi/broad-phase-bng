@@ -29,8 +29,6 @@ bng.world = new ro.World( 'ro-canvas', {
                 ,baseWidth
                 ,baseHeight
             );
-
-            console.log( self.entities.length + ' entities in world' );
         })
     }
 
