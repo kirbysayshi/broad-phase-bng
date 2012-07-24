@@ -3,49 +3,48 @@ var bng = {};
 bng.world = new ro.World( 'ro-canvas', {
 
      coltech: new ro.coltech.BruteForce()
+     ,debug: true // enable stats
+
+     ,movers: []
+     ,baseRadius: 0
+     ,ringCount: 1
 
     // called at the end of ro.World constructor
     ,init: function(){
     
-        var  count = 15
-            ,radius = this.screen.size.y / 2 * 2/3 // 2/3rds of half of the height
-            ,width = 30
-            ,height = 30
-            ,offsetX = this.screen.size.x/2 - width/2
-            ,offsetY = this.screen.size.y/2 - height/2
-            ,i
-            ,box
-            ,angle;
-        
-        this.movingBox = new ro.Entity( offsetX, offsetY, width, height );
-        this.movingBox.period = 0;
-        this.movingBox.radius = radius;
-        this.addEntity( this.movingBox );
+        var self = this;
 
-        for(i = 0; i < count; i++){
-            // compute angle to evenly space out boxes
-            angle = (i/count) * Math.PI*2;
-            box = new ro.Entity(
-                 Math.cos(angle) * radius + offsetX
-                ,Math.sin(angle) * radius + offsetY
-                ,width, height );
-            this.addEntity( box );
-        }
+        this.baseRadius = this.screen.size.y / 2 * 1/3; // 1/3rd of half of the height
+        this.createRingOfEntities( 15, this.baseRadius, 15, 15 );
+
+        // bind click event for adding more rings of boxes
+        this.screen.canvas.addEventListener('click', function(e){
+
+            self.ringCount += 1;
+            self.createRingOfEntities( 15, self.baseRadius * self.ringCount, 30, 30 );
+        })
     }
 
     // called at each update step
     ,update: function(){
 
-        var  entityLen = this.entities.length
-        	,offsetX = this.screen.size.x/2 - this.movingBox.size.x/2
-            ,offsetY = this.screen.size.y/2 - this.movingBox.size.y/2
+        var mover, offsetX, offsetY;
 
-        // move the box around the circle
-        this.movingBox.period += 0.02;
-        this.movingBox.pos.x = Math.cos( this.movingBox.period ) * this.movingBox.radius + offsetX;
-        this.movingBox.pos.y = Math.sin( this.movingBox.period ) * this.movingBox.radius + offsetY;
+        // move all of the moving boxes around the circle
+        for(i = 0; i < this.movers.length; i++){
+
+            mover = this.movers[i];
+
+            offsetX = this.screen.size.x/2 - mover.size.x/2;
+            offsetY = this.screen.size.y/2 - mover.size.y/2;
+
+            mover.period += 0.02;
+            mover.pos.x = Math.cos( mover.period ) * mover.radius + offsetX;
+            mover.pos.y = Math.sin( mover.period ) * mover.radius + offsetY;
+        }
     }
     
+    // called automatically by ro
     ,handleCollisions: function(dt, collisionList){
     	
     	var i, pair, objA, objB;
@@ -58,9 +57,38 @@ bng.world = new ro.World( 'ro-canvas', {
     		objA.draw( dt, ro.colors.kred05 );
     		objB.draw( dt, ro.colors.kred05 );
     	}
+    }
 
+    ,createRingOfEntities: function( count, radius, width, height  ){
+
+        var  offsetX = this.screen.size.x/2 - width/2
+            ,offsetY = this.screen.size.y/2 - height/2
+            ,i
+            ,box
+            ,angle;
+        
+        var movingBox = new ro.Entity( offsetX, offsetY, width, height );
+        movingBox.period = 0;
+        movingBox.radius = radius;
+        this.addEntity( movingBox );
+
+        this.movers.push( movingBox );
+
+        for(i = 0; i < count; i++){
+            // compute angle to evenly space out boxes
+            angle = (i/count) * Math.PI*2;
+            box = new ro.Entity(
+                 Math.cos(angle) * radius + offsetX
+                ,Math.sin(angle) * radius + offsetY
+                ,width, height );
+            this.addEntity( box );
+        }
     }
 });
+
+// draw a single frame
+bng.world.start();
+bng.world.stop();
 
 document.addEventListener( 'keydown', function(e){
     if(e.which == 27){ // escape
