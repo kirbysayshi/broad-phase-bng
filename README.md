@@ -7,7 +7,10 @@
 
 <canvas id="ro-canvas" width="546" height="410"></canvas>
 
-<!--<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.js"></script>
+<!--
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/vendor/Stats.js"></script>
+
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.js"></script>
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.math.js"></script>
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.world.js"></script>
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.brute-force.js"></script>
@@ -15,7 +18,10 @@
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.spatial-grid.js"></script>
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.screen.js"></script>
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.entity.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.input.js"></script>-->
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.input.js"></script>
+
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/examples/bruteforce/orbit-01.js"></script>
+-->
 
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/Stats.js"></script>
 
@@ -129,15 +135,15 @@ Since the box is axis-aligned, an overlap determination is as simple as comparin
 <figure>
 	<a id="fig-3"></a>
 	<iframe 
-		style="width: 100%; height: 465px" 
-		src="" 
+		style="width: 100%; height: 480px" 
+		src="http://jsfiddle.net/kirbysayshi/tMCFJ/embedded/result" 
 		allowfullscreen="allowfullscreen" 
 		frameborder="0">
 	</iframe>
-	<figcaption>Fig. 3: Press ESC to start/stop the example. Brute force collision in action! The colliding squares are darker.</figcaption>
+	<figcaption>Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more. (Press ESC to start/stop.)</figcaption>
 </figure>
 
-[Fig. 3](#fig-3) demonstrates the brute force technique, and also offers a potential optimization. In this example, all squares are being checked against all other squares, and yet only one square is actually moving. An optimization would be to construct a list of moving objects, and then compare them to all the static objects. If this is appropriate or not depends on the mechanics of the game. 
+[Fig. 3](#fig-3) demonstrates the brute force technique, and visually also offers a potential optimization. In this example, all squares are being checked against all other squares, and yet only one square is actually moving. An optimization would be to construct a list of moving objects, and then compare them to all the static objects. If this is appropriate or not depends on the mechanics of the game. 
 
 ## Attempt #2: Bins / Spatial Partioning
 - talk about quadtrees? BSP trees?

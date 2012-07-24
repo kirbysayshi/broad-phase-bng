@@ -12,16 +12,25 @@ bng.world = new ro.World( 'ro-canvas', {
     // called at the end of ro.World constructor
     ,init: function(){
     
-        var self = this;
+        var self = this
+            ,baseWidth = 10
+            ,baseHeight = 10;
 
-        this.baseRadius = this.screen.size.y / 2 * 1/3; // 1/3rd of half of the height
-        this.createRingOfEntities( 15, this.baseRadius, 15, 15 );
+        this.baseRadius = this.screen.size.y / 2 * 1/6; // 1/6th of half of the height
+        this.createRingOfEntities( 15, this.baseRadius, baseWidth, baseHeight );
 
         // bind click event for adding more rings of boxes
         this.screen.canvas.addEventListener('click', function(e){
 
             self.ringCount += 1;
-            self.createRingOfEntities( 15, self.baseRadius * self.ringCount, 30, 30 );
+            self.createRingOfEntities( 
+                 Math.floor(15 * self.ringCount * 0.65)
+                ,self.baseRadius * self.ringCount
+                ,baseWidth
+                ,baseHeight
+            );
+
+            console.log( self.entities.length + ' entities in world' );
         })
     }
 
