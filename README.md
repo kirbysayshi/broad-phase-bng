@@ -1,10 +1,8 @@
-
-<link href="file:///Users/drew/Dropbox/js/broad-phase-bng/style/styles.css" rel="stylesheet" type="text/css" />
-
 # Broad Phase Collision Detection Using Spatial Partitioning
 # Two Approaches to Broad Phase Collision Detection Using Spatial Partitioning
 
-
+<link href="file:///Users/drew/Dropbox/js/broad-phase-bng/style/styles.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://jsbin.com/ekises/latest.js"></script>
 <canvas id="ro-canvas" width="546" height="410"></canvas>
 
 <!--
@@ -23,7 +21,12 @@
 <script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/examples/bruteforce/orbit-01.js"></script>
 -->
 
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function(){ ghe.autoload(); }, false);
+</script>
+
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/Stats.js"></script>
+<script type="text/javascript" src="https://raw.github.com/kirbysayshi/ghembedder/master/dist/ghembedder.min.js"></script>
 
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.math.js"></script>
@@ -35,7 +38,7 @@
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.entity.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.input.js"></script>
 
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/bruteforce/orbit-01.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/spatial-grid/orbit-sg-01.js"></script>
 
 ## intro
 
@@ -60,25 +63,25 @@ Narrow phase is the fine grained, "What part of object A colided with object B?"
 
 There is one more important thing to note regarding this article. There are two phases when attempting to update a game world: _detection_ of the collision, followed by the _response_, or the result of that collision (e.g. two balls bounce off of each other). This article will focus exclusively on the detection of a collision, not the response.
 
-## Our World
+## Our World and Demos
 
 The same basic setup will be used for each example of collision detection. We have a global namespace, `ro` (which is also the name of the basic engine), which will contain the following components:
 
-* ro.World: responsible for adding entities, stepping/updating, and tying everything together.
-* ro.Entity: a single "thing" that will exist in our game. It has basic properties, like position, size, acceleration, and more.
-* ro.Screen: responsible for providing a drawing context and drawing management. Simple boxes are all that will be needed to be drawn, but separating out drawing state from the state of the world itself is good practice.
-* ro.math: some common math utilities, like line intersection.
-* ro.ov3: vector operations for generic objects with x/y properties
-* ro.coltech: Short for "collision technique", this namespace will hold the constructors for our collision detection interface.
+* `ro.World`: responsible for adding entities, stepping/updating, and tying everything together.
+* `ro.Entity`: a single "thing" that will exist in our game. It has basic properties, like position, size, acceleration, and more.
+* `ro.Screen`: responsible for providing a drawing context and drawing management. Simple boxes are all that will be needed to be drawn, but separating out drawing state from the state of the world itself is good practice.
+* `ro.math`: some common math utilities, like line intersection.
+* `ro.ov3`: vector operations for generic objects with x/y properties
+* `ro.coltech`: Short for "collision technique", this namespace will hold the constructors for our collision detection interface.
 
-[jsfiddle][] will be used to sandbox the demos. This means that the following will be valid for each demo:
+[JSFiddle][] will be used to sandbox the demos. This means that the following will be valid for each demo:
 
 | variable path  | instance type | description |
 ---------------- | ------------- | -------------
-bng              | Object        | A namespace for our demo instances
-bng.world        | ro.World      | global reference to the world
-bng.world.screen | ro.Screen     | global reference to the screen
-ov3              | none          | references ro.ov3, for vector operations
+`bng`              | `Object`        | A namespace for our demo instances
+`bng.world`        | `ro.World`      | global reference to the world
+`bng.world.screen` | `ro.Screen`     | global reference to the screen (canvas and canvas 2D context)
+`ov3`              | `none`          | references ro.ov3, for vector operations
 
 The world also uses the following order for each step of the simulation:
 
@@ -90,6 +93,8 @@ The world also uses the following order for each step of the simulation:
 - Call the user-defined `handleCollisions`
 - Apply inertia to all entities [^3], update their AABBs
 - Call the user-defined `update`
+
+All demos can be stopped/paused and started by pressing `ESC` while they have focus.
 
 Let's get started!
 
@@ -105,19 +110,24 @@ In nearly any collision detection scheme, every object must be tested or touched
 		allowfullscreen="allowfullscreen" 
 		frameborder="0">
 	</iframe>
-	<figcaption>Fig. 1: A graph of the number of checks required for brute force collision as the number of entities increases.</figcaption>
+	<figcaption>
+		Fig. 1: A graph of the number of checks required for brute force collision as the number of entities increases. For only 100 entities, nearly 5000 collision checks are required.
+	</figcaption>
 </figure>
 
-The equation for this series is `n(n - 1) / 2`.
-
-This quickly becomes the biggest bottleneck of the game. But here's how to do it anyway! Even though this should probably not be used as the primary broad phase technique, it is often used as an internal component to a more complex technique.
+This quickly becomes the biggest bottleneck of the game. But here's how to do it anyway! It is often used as an internal component of other broad phase techniques, and occasionally is the most appropriate choice for your game.
 
 Brute force is accomplished by a nested loop:
 
 <figure>
 	<a id="fig-2"></a>
-	<script src="https://gist.github.com/3161911.js?file=brute-force-query.js"></script>
-	<figcaption>Fig. 2: Two functions demonstrating brute force collision detection iteration and an AABB overlap test.</figcaption>
+	<div 
+		data-ghpath="lib/ro.coltech.brute-force.js" 
+		data-ghuserrepo="kirbysayshi/broad-phase-bng"
+		data-ghlines="19-54"></div>
+	<figcaption>
+		Fig. 2: Two functions demonstrating brute force collision detection iteration and an AABB overlap test.
+	</figcaption>
 </figure>
 
 There is a small trick here to make sure we don't have to worry about testing objects more than once accidentally. The inner loop always starts at `i + 1` as opposed to `0`. This ensures that anything "behind" `i` is never touched by the inner loop. If this is confusing, the best way to understand is to work through what the loops and variables are doing using pen and paper.
@@ -140,16 +150,68 @@ Since the box is axis-aligned, an overlap determination is as simple as comparin
 		allowfullscreen="allowfullscreen" 
 		frameborder="0">
 	</iframe>
-	<figcaption>Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more. (Press ESC to start/stop.)</figcaption>
+	<figcaption>
+		Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more and watch the framerate fall. Press ESC to start/stop.
+	</figcaption>
 </figure>
 
-[Fig. 3](#fig-3) demonstrates the brute force technique, and visually also offers a potential optimization. In this example, all squares are being checked against all other squares, and yet only one square is actually moving. An optimization would be to construct a list of moving objects, and then compare them to all the static objects. If this is appropriate or not depends on the mechanics of the game. 
+[Fig. 3](#fig-3) demonstrates the result of the complete brute force technique, and visually also offers a potential optimization. In this example, all squares are being checked against all other squares, and yet only one square is actually moving. An optimization would be to construct a list of moving objects, and then compare them to all the static objects. If this is appropriate or not depends on the mechanics of the game. 
 
 ## Attempt #2: Bins / Spatial Partioning
-- talk about quadtrees? BSP trees?
-- test
 
+[Spatial Partitioning][], for our purposes, is the act of dividing up a continuous space into several discrete areas based on a few simple rules (the rules change with each approach). Common techniques include a [Quadtree][], a [BSP tree][], an [R-tree][], and [Bins][] / Spatial Grids, which is the topic of this section.
 
+The rules of our gridding system are going to be as follows:
+
+* A cell is defined as a square having discrete boundaries (e.g. it describes an exact "piece" of space).
+* If an entity's bounding box overlaps with a cell, the entity will be inserted into that cell.
+* An entity can be inserted into multiple cells.
+* The grid will be discarded and rebuilt after every world update.
+* Looking for coliding pairs requires iterating over every occupied cell of the grid.
+* We must keep track of what pairs have already been tested against each other.
+
+Spatial grids typically have a one-to-one mapping of world coordinates to a homogenous memory structure, represented by an array or linked list. Having a direct mapping to a physical space allows a spatial grid to be more easily visualized, aiding in debugging and understanding. Our grid will be represented by a 3D array. The indices of the first array will be columns, the indices of the inner array will be cells, and the innermost indices will be individual entities assigned to a cell:
+
+<figure>
+	<a id="fig-4"></a>
+	<img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
+	<figcaption>
+		Fig. 4: A rectangular object whose upper left corner is positioned at { x: 20, y: 50 }. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: grid[0][B], which in actual code maps to grid[0][1].
+	</figcaption>
+</figure>
+
+Mapping a position, for example `{ x: 46, y: 237 }`, can be accomplished using the following formulas:
+
+	// Math.floor( (position - gridMinimum) / gridCellSize )
+
+	var  col = Math.floor( (46 - grid.min.x) / grid.pxCellSize )
+		,cell = Math.floor( (237 - grid.min.y) / grid.pxCellSize );
+	
+	grid[col][cell] = ... // bucket to put entity into
+
+`grid.pxCellSize` is the number of pixels each cell covers. Since each cell is assumed to be square, only one value is needed. `grid.min.x/y` allows for entities to have negative positions, and still produce a valid numerical array index. Typically the grid minimum will be `{ x: 0, y: 0 }`, but you could have a grid that maps to a world like [Fig. 5](#fig-5).
+
+<figure>
+	<a id="fig-5"></a>
+	<img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
+	<figcaption>
+		Fig. 5: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.	
+	</figcaption>
+</figure>
+
+### But It Must Be Tuned
+
+<figure>
+	<iframe 
+		style="width: 100%; height: 485px" 
+		src="http://jsfiddle.net/kirbysayshi/VEQa7/embedded/result" 
+		allowfullscreen="allowfullscreen" 
+		frameborder="0">
+	</iframe>
+	<figcaption>
+		Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to interate. A large size produces many checks, but fewer cells to interate through. Press ESC to start/pause, and click the canvas to add more entities.
+	</figcaption>
+</figure>
 
 ## Attempt #3: Hierarchical Spatial Hash Grids
 
@@ -184,9 +246,10 @@ Our examples today will use discrete detection, but there are ways to mitigate i
 
 [^3]: Ro uses a technique called verlet integration, as opposed to Euler (pronounced "oiler") integration. This provides for a more stable update step, and allows us to simply move the entities to a valid position as a collision response. You may notice that the entities do not have a `velocity` property; verlet integration stores this implicitely, as the difference between `pos` and `ppos` (previous position).
 
-[^4]: This is actually a special case of the [Hyperplane Separation Theorem][]. It is greatly simplified because the separating axes are always parallel to the X and Y axes. This test actually projects the positions of each matching side of each AABB. If the projections overlap, there is an intersection!
+[^4]: This is actually a special case of the [Hyperplane Separation Theorem][]. It is greatly simplified because the separating axes are always parallel to the X and Y axes. This test actually projects the positions of each matching side of each AABB. This can be thought of as flattening the 2D boxes to 1D for each axis. If the projections overlap, there is an intersection!
 
 [Sweep and Prune]: http://en.wikipedia.org/wiki/Sweep_and_prune
+[Spatial Partitioning]: http://en.wikipedia.org/wiki/Space_partitioning
 [Pixel Perfect Collision Detection]: http://troygilbert.com/2009/08/pixel-perfect-collision-detection-revisited/
 [NES]: http://nocash.emubase.de/everynes.htm
 [Gameduino]: http://excamera.com/sphinx/gameduino/samples/jkcollision/index.html
@@ -194,4 +257,9 @@ Our examples today will use discrete detection, but there are ways to mitigate i
 [Hyperplane Separation Theorem]: http://en.wikipedia.org/wiki/Hyperplane_separation_theorem
 
 [Swept Tests]: http://www.gamasutra.com/view/feature/3383/simple_intersection_tests_for_games.php
-[jsfiddle]: http://jsfiddle.net/
+[JSFiddle]: http://jsfiddle.net/
+[Quadtree]: http://en.wikipedia.org/wiki/Quadtree
+[BSP tree]: http://en.wikipedia.org/wiki/BSP_tree
+[R-tree]: http://en.wikipedia.org/wiki/R-tree
+[Bins]: http://en.wikipedia.org/wiki/Bin_%28computational_geometry%29
+
