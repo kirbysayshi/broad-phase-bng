@@ -50,6 +50,10 @@ bng.world = new ro.World( 'ro-canvas', {
             mover.pos.x = Math.cos( mover.period ) * mover.radius + offsetX;
             mover.pos.y = Math.sin( mover.period ) * mover.radius + offsetY;
         }
+
+		if( this.debug ){
+			this.broadPhase.draw( this.screen.context );
+		}
     }
     
     // called automatically by ro
