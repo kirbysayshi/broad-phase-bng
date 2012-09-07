@@ -4,38 +4,6 @@
 # Two Approaches to Broad Phase Collision Detection Using Spatial Partitioning
 
 <link href="file:///Users/drew/Dropbox/js/broad-phase-bng/style/styles.css" rel="stylesheet" type="text/css" />
-<canvas id="ro-canvas" width="546" height="410"></canvas>
-
-<!--
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/vendor/Stats.js"></script>
-
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.math.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.world.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.brute-force.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.hshg.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.coltech.spatial-grid.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.screen.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.entity.js"></script>
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/lib/ro.input.js"></script>
-
-<script type="text/javascript" src="https://raw.github.com/kirbysayshi/broad-phase-bng/master/examples/bruteforce/orbit-01.js"></script>
--->
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/Stats.js"></script>
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/hshg3d.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.math.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.world.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.brute-force.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.hshg.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.spatial-grid.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.screen.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.entity.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.input.js"></script>
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/benches/spatialgrid.js"></script>
 
 ## What is Broad-Phase Collision Detection?
 
