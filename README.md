@@ -2,6 +2,25 @@
 
 <link href="style/styles.css" rel="stylesheet" type="text/css" />
 
+<!--<canvas id="ro-canvas" width="546" height="410"></canvas>-->
+
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/Stats.js"></script>
+
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/hshg.js"></script>
+
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.math.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.world.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.brute-force.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.hshg.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.spatial-grid.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.screen.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.entity.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.input.js"></script>
+
+<!--<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/hshg/orbit-hshg-01.js"></script>
+<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/spatial-grid/orbit-sg-01.js"></script>-->
+
 ## What is Broad-Phase Collision Detection?
 
 Collision detection is an ongoing source of research and constant optimization in game development. It can be a source of exuberance or nearly infinite frustration. Rolling your own is typically the best way to make sure your game is never finished!
@@ -33,9 +52,9 @@ The same basic setup will be used for each example of collision detection. We ha
 
 <table>
 	<tr>
-		<td>variable path</td>
-		<td>instance type</td>
-		<td>description</td>
+		<th>Variable Path</th>
+		<th>Instance Type</th>
+		<th>Description</th>
 	</tr>
 	<tr>
 		<td><code>bng</code></td>
@@ -150,7 +169,7 @@ This method also introduces a staple of collision detection: an AABB overlap tes
 
 The above example describes an AABB located at `10, 20`, with a width and height of `10`.
 
-Since the box is axis-aligned, an overlap determination is as simple as comparing the min and max points of each object respectively[^4]. Please note that this test only returns a boolean, not information about _how_ they are overlapping. The code is contained within [Fig. 2](#fig-2).
+Since the box is axis-aligned, an overlap determination is as simple as comparing the min and max points of each object respectively [^4]. Please note that this test only returns a boolean, not information about _how_ they are overlapping. The code is contained within [Fig. 2](#fig-2).
 
 <figure>
 	<a id="fig-3"></a>
@@ -161,7 +180,7 @@ Since the box is axis-aligned, an overlap determination is as simple as comparin
 		frameborder="0">
 	</iframe>
 	<figcaption>
-		Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more and watch the framerate fall. Mouseover to start, mouseout to stop.
+		Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more and watch the framerate fall (eventually). Mouseover to start, mouseout to stop.
 	</figcaption>
 </figure>
 
@@ -253,7 +272,7 @@ Both [Fig. 6](#fig-6) and [Fig. 7](#fig-7) are worst case scenarios: the size of
 	<a id="fig-8"></a>
 	<img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
 	<figcaption>
-		Fig. 8: A spatial grid with entities that an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
+		Fig. 8: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
 	</figcaption>
 </figure>
 
@@ -272,14 +291,22 @@ To demonstrate the effect cell size can have, [Fig. 9](#fig-9) allows for the ce
 	</figcaption>
 </figure>
 
-In addition to computational power required, another concern is the memory consumption of the number of allocated cells. As the grid gets more and more fine, more memory will be allocated and released after each update, causing garbage collection churn. This can cause noticeable pauses and hiccups.
-
-### Grid Creation / Population
-
-As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity's position has changed. The general algorithm for constructing and populating the grid is specified in [Fig. 10](#fig-10).
+In addition to computational power required, another concern is the memory consumption of the number of allocated cells. As the grid gets more and more fine, more memory will be allocated and released after each update, causing garbage collection churn. This can cause noticeable pauses and hiccups. While it's difficult to track using user-built tools, I recommend opening up Chrome's Memory Profiler to see the effect each cell size has on memory consumption.
 
 <figure>
 	<a id="fig-10"></a>
+	<img src="images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
+	<figcaption>
+		Fig. 10: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-9">Fig. 9</a>. The first event is with cell size set to the default (10 * SQRT2). Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
+	</figcaption>
+</figure>
+
+### Grid Creation / Population
+
+As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity's position has changed. The general algorithm for constructing and populating the grid is specified in [Fig. 11](#fig-11).
+
+<figure>
+	<a id="fig-11"></a>
 	<code>
 		<ul>
 			<li>determine grid width and height</li>
@@ -304,16 +331,16 @@ As said before, the spatial grid is recreated for each world step. This avoids n
 		</ul>
 	</code>
 	<figcaption>
-		Fig. 10: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.update</code> method.
+		Fig. 11: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.update</code> method.
 	</figcaption>
 </figure>
 
 ### Querying For Collision Pairs
 
-Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. [Fig. 11](#fig-11) has the full algorithm. 
+Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. [Fig. 12](#fig-12) has the full algorithm. 
 
 <figure>
-	<a id="fig-11"></a>
+	<a id="fig-12"></a>
 	<code>
 		<ul>
 			<li>For each occupied cell in the grid
@@ -322,21 +349,21 @@ Querying for collision pairs is relatively straight forward, and involves visiti
 						<ul>
 							<li>Check if this pair has been tested before</li>
 							<li>If not, check this pair, and mark them as tested</li>
-						</ul>	
-					</li>	
-				</ul>	
+						</ul>
+					</li>
+				</ul>
 			</li>
 		</ul>
 	</code>
 	<figcaption>
-		Fig. 11: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
+		Fig. 12: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
 	</figcaption>
 </figure>
 
-The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in [Fig. 12](#fig-12).
+The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in [Fig. 13](#fig-13).
 
 <figure>
-	<a id="fig-12"></a>
+	<a id="fig-13"></a>
 	<pre><code>
 World.prototype.addEntity = function(entity){
 	entity._roId = this.uniq++;
@@ -346,14 +373,14 @@ World.prototype.addEntity = function(entity){
 }
 	</code></pre>
 	<figcaption>
-		Fig. 12: Adding an entity to the game world attaches a unique id.
+		Fig. 13: Adding an entity to the game world attaches a unique id.
 	</figcaption>
 </figure>
 
 Once we have unique ids, it's trivial to track which object pairs have been tested. Each pair forms two keys, `A:B` and `B:A`. These keys are then set in an object that functions as a cache. If the keys already exist, then there is no need to test a pair.
 
 <figure>
-	<a id="fig-13"></a>
+	<a id="fig-14"></a>
 	<pre><code>
 hashA = entityA._roId + ':' + entityB._roId;
 hashB = entityB._roId + ':' + entityA._roId;
@@ -378,7 +405,7 @@ if( !checked[hashA] && !checked[hashB] ){
 		data-ghlines="137-154"
 		data-ghtabsize="2"></div>
 	<figcaption>
-		Fig. 13: Keeping a cache of tested pairs.
+		Fig. 14: Keeping a cache of tested pairs. 
 	</figcaption>
 </figure>
 
@@ -389,153 +416,51 @@ As stated before, inefficiencies can arise under certain conditions:
 * Entities that vary greatly in size
 * Improperly tuned cell size
 
-The simplicity of spatial grids can often outweigh their limitation of needing to be hand-tuned. When entities are relatively close in size, and their possible bounds are well defined, spatial grids can be an excellent choice. However, in any situation where the entities vary greatly in size, or where the size of the entities cannot be known at developer time (e.g. some sort of user-controlled tool), then the simple grid demonstrated here falls down.
+The simplicity of spatial grids can often outweigh their limitation of needing to be hand-tuned. When entities are relatively close in size, and their possible bounds are well defined, spatial grids can be an excellent choice. However, in any situation where there are many entities that vary greatly in size (many large entities colliding with many small entities), then the simple grid demonstrated here falls down, devolving into nearly a brute force test.
 
 ### Future Expansion
 
 There are a few ways to improve this current grid implementation.
 
-One change that is most obvious in practice is the API of the grid itself. In a non-simulation setting, collision queries are usually performed only when needed, and not globally. For example, in your player update logic for a Mario clone, you may want to know if the player is colliding with a powerup. You wouldn't **all** the various objects that are colliding, only the player and the powerups. 
+One change that is most obvious in practice is the API of the grid itself. In a non-simulation setting, collision queries are usually performed only when needed, and not globally. For example, in your player update logic for a Mario clone, you may want to know if the player is colliding with a powerup. You wouldn't want **all** of the various objects that are colliding, only the player and the powerups. 
 
-One way around this would be to use different grids for different types of tests. For example, a single grid could be used for the player and powerups, while a second grid could be used for the player vs enemies. Another way is to cache the grand, global collision pairs result, and provide another interface. An example could be `isColliding( a, b )`, which could then loop through the cached result, and return true or false. 
+One way around this would be to use different grids for different types of tests. For example, a single grid could be used for the player and powerups, while a second grid could be used for the player vs enemies. Another way is to cache the grand, global collision pairs result, and provide another interface. An example could be `isColliding( a, b )`, which could then loop through (or use some sort of lookup optimization) the cached result, and return true or false. 
 
-Another improvement could be to write code that could manage creating new grids for objects of varying sizes. This would greatly complicate querying for collision pairs, as well as destroy the simplicity of the grid. If this is needed, then the next attempt will be of great interest.
+Another improvement could be to write code that could manage creating new grids for objects of varying sizes. This would greatly complicate querying for collision pairs (you would have to traverse a hierarchy of grids), as well as destroy the simplicity of the grid. 
 
-## Attempt #3: Hierarchical Spatial Hash Grids
+An initial thought may be to reduce the amount of discarded arrays by retaining the grid structure, and actually updating entities' positions in the structure. While this sounds great in practice, it's actually quite difficult to do in linear time. One would have to maintain a list, for each entity, of its grid locations. During the update phase, it would need to be removed from cells it was no longer touching, and added to new cells. This adds a lot of complexity to a relatively simple idea.
 
-When entities greatly differ in size, or perhaps when the size of entities is not known initially, a more advanced form of spatial grid is required: a hierarchical spatial hash grid, or HSHG. This advanced grid retains several features from the basic spatial grid, but also greatly improves capabilities (with a marked rise in complexity).
-
-I found this grid technique described in a paper by [Florian Schornbaum][] (slides are [also available][]) titled _[Hierarchical Hash Grids for Coarse Collision Detection][]_. The paper is relatively long (51 pages), and goes into great depth on the specifics and implementation of a 3D HSHG in C++. I will provide an overview of the most important concepts in 2D (the HSHG implementation also works just fine in 3D) to get a feel for why Florian's grid is so awesome.
-
-### The Name: Hierarchical Who Now?
-
-The name is a mouthful, but actually describes what is going on.
-
-* **Hierarchical**: usually denotes that items have an aspect of hierarchy. This means they can be classified as being "above" or "below", or "greater" or "lesser" compared to each other. In this case, it means an ordered series of grids by cell size.
-* **Spatial**: this means the same as for our basic spatial grid. Physical positions in our game world will be mapped to specific cells of the grid.
-* **Hash**: this describes the method of how positions will be mapped to the cells of the grid. The positions will be hashed, or run through a particular mathematical calculation that will normalize the values.
-* **Grid**: yep, it's a grid! Actually it's several grids internally, but will be interacted with as if it were one.
-
-### And It Does What Now?
-
-At the core, the HSHG is a series of spatial grids, each with different cell sizes. Grids are only created as necessary, meaning that the HSHG is perfectly tailored to the entities it holds: no tuning necessary! Because there are multiple cell sizes, the issue of very large vs. vary small entities is relatively moot.
-
-There are several tricks used internally to ensure that the minimal amount of memory is used, with grids, cells, and entity containers only being intialized when necessary. 
-
-Adding entities and removing entities is also guaranteed to occur in [constant time][], meaning that no matter how many entities are added to the grid, removal and addition will always take the same amount of time to complete. 
-
-### Spatial Hashing
-
-A key difference between the simple spatial grid and the HSHG is how they map physical space, e.g. a position, to logical space, e.g. a data structure. The spatial grid has a one-to-one mapping, making it simple to visualize. The HSHG uses a more complex mapping, which allows for any position to be converted to a simple array index.
-
-[Hashing][] is the process of taking a large range of data values, and mapping them to a smaller range of keys. For example, [SHA-1][] takes practically any data and transforms it to a 160-bit value, thus reducing the possible range.
-
-The HSHG's hashing function does the same thing, but maps a nearly infinte range of positions (limited only by the precision of the data types) to a fixed set of array indexes. It also accounts for negative positions.
-
-<figure>
-	<a id="fig-14"></a>
-	<pre><code>
-if(x < 0){
-	i = (-x) / cellsize;
-	xHash = cellcount - 1 - ( Math.floor(i) % x_cellcount );
-} else {
-	i = x / cellsize;
-	xHash = Math.floor(i) % x_cellcount;
-}
-	</code></pre>
-	<figcaption>
-		Fig. 14: How the hashing function logically works for a single dimension. The real function avoids division (not a significant optimization in JavaScript) and uses mathematical properties to replace the modulo operation with a bitwise AND. This requires that the dimensions of the grid are always a power of two.
-	</figcaption>
-</figure>
-
-So great, but what does that mean in practice? [Fig. 14](#fig-14) shows the results of the hashing function when applied to a continuous range of one-dimensional positions. It does this for three different cell sizes, which hopefully shows that as the cell size increases, so do the range of values a single cell can hold.
-
-<figure>
-	<a id="fig-14"></a>
-	<iframe 
-		style="width: 100%; height: 465px" 
-		src="http://jsfiddle.net/kirbysayshi/2PBAs/embedded/result" 
-		allowfullscreen="allowfullscreen" 
-		frameborder="0">
-	</iframe>
-	<figcaption>Fig. 14: A graph of the hashing function used in the HSHG. Notice how the positions (X axis) "bucket" themselves.</figcaption>
-</figure>
-
-Values become grouped or bucketed together, which allows them to be mapped to an array index. This form of hashing, unlike SHA-1, maintains a relationship, meaning that hashes near each other in value are also near each other spatially, as [fig. 15](#fig-15) demonstrates.
-
-<figure>
-	<a id="fig-15"></a>
-	<img src="images/hshg-linear-indexing.png" alt="Mapping linear indexes to space" />
-	<figcaption>
-		Fig. 15: A grid with defined boundaries can be mapped to a linear array via hash values. In this example, the grid is 7 cells wide by 5 cells tall, and each cell is displaying an example hash value. Notice how the hash values are not random, and in fact maintain their spatial relevance (e.g. cell 15 is next to cell 16).
-	</figcaption>
-</figure>
-
-But what is the appropriate size for this array?
-
-### Grid Density
-
-The HSHG must use powers of two as the internal grid dimensions (see [Fig. 14](#fig-14)) due to the hashing function used. A grid will initially be 16x16, meaning an array with length 256. Each time an entity is added to the HSHG, the density of the grid is tracked. When the number of entities divided by number of cells is greater than a certain value (1/8 by default), the grid is emptied, all data structures are freed (or attempted to be free), the grid is expanded by a factor of two in each dimension (total cells increase by a factor of 4 in 2D), and all entities are reinserted. This prevents too many objects from being mapped to the same grid cell. If many entities were mapped to the same cell, then the detection step would devolve into the brute force method.
-
-### Adding An Entity
-
-When an entity is added to the HSHG, a series of internal actions take place:
-
-* Does a grid exist that contains appropriately-sized cells?
-  * Yes? Insert the entity
-  * No? Create a grid
-
-In the event that a grid does not exist, the HSHG has to determine an appropriate cell size. It does this by taking the longest side of the entity's AABB, and multiplying it by the square root of a value called the _hierarchy factor_. By default, this factor is 2, but can be tweaked. This means that each successive grid will have a cell size two times larger than the previous.
-
-An entity is added both to an internal "global objects" list, as well as to an individual cell's object list. Each of these indices are stored. This way, when an entity needs to be removed from the grid, it is a simple matter of replacing the entity's position in these lists with the last entity in the list. This ensures [constant time][].
-
-<figure>
-	<a id="fig-16"></a>
-	<img src="images/hshg-removing-element.png" alt="Removing an element from an array in constant time" />
-	<figcaption>
-		Fig. 16: In this array, the element at index 2 is being removed. Instead of using `splice`, the HSHG ensures constant time by taking the last element of the array, and inserting it at index 2 via a simple property assignment. The element formerly known as 6 is then marked as being element 2.
-	</figcaption>
-</figure>
-
-### Querying for Collision Pairs
-
-Querying for collision pairs is where things get a little tricky. With the basic spatial grid, each entity was added to all the cells it overlapped, and then a list was maintained to prevent duplicate tests. With the HSHG, an entity is only added to _one_ cell, and, due to a special iteration scheme, no list of "checked" pairs must be maintained.
-
-<figure>
-	<a id="fig-17"></a>
-	<img src="images/hshg-cell-visitation.png" alt="Visiting cells in a special order prevents duplicate checks." />
-	<figcaption>
-		Fig. 17: Each pink cell is tested against each grey cell, with each grid demonstrating the next cell to be visited. When x is visited, it is checked against cells 1, 2, 3, and 4. It is only checked against cells 5, 6, 7, and 8 when those cells are visited. This diagram is reproduced nearly verbatim from the original paper.
-	</figcaption>
-</figure>
-
-As [Fig. 17](#fig-17) shows, when each occupied cell is visited, it is constantly "looking back" at occupied cells behind it. This ensures that cells are never checked against each other more than once.
-
-Because the HSHG actually has multiple grids contained within it, entities must also be checked against entities in other grids. The grids are ordered by cell size ascending. As long as small entities are always checked against bigger entities, duplicate checks should be avoided.
-
-<figure>
-	<a id="fig-18"></a>
-	<img src="images/hshg-detection-hierarchy.png" alt="Grid hierarchies require working up the grids" />
-	<figcaption>
-		Fig. 18: This denotes a one dimensional (in terms of position) hierarchy of grids. The first group demonstrates how, when the cell containing A is checked for collisions, it must work its way up the hierarchy of grids. The second group demonstrates checking the cell containing B. Notice how B is not checked against A twice, because the checks always travel "up" the hierarchy.
-	</figcaption>
-</figure>
-
-### Updating the Entities
-
-Updating each entity is simple. Every entity's hash is recomputed. If it differs from its hash, then it is removed from the grid, and re-added. This is in stark contrast to the simple grid method, which actually destroyed the entire grid structure for every update.
-
-### But How Does It Perform?
-
-...
+As an alternative, each entity could be limited to a single cell. Then, at query time, the cells that the entity overlaps could be calculated relatively easily, and all the entities contained within could be tested. The cache of checked pairs would still have to be kept, but this would greatly simplify the update phase, while increasing the computational cost of the query phase.
 
 ## Closing Thoughts
 
-Each of these techniques has appropriate applications, and it's up to you as the developer to know when to use them. Here are some general recommendations:
+There are few reasons to use brute force instead of a spatial grid. At the worst case, the spatial grid will devolve into the same performance as the brute force, but in the best case be [at least 100x faster][], usually more.
 
-* Simple Game
-* Simulation
-* Size-restrictions
+A situation where a spatial grid would be inappropriate are when memory usage, garbage collection churn, or code size is a concern (such as for a contest). The memory usage of a spatial grid is minimal, but it's definitely more than the brute force method. I can think of few situations where it would actually matter. The grid is relatively deterministic in its extreme cases, given set variables, such as number of entities, cell size, and grid dimensions.
+
+For example, given a cell size of 15, 100 entities each 10x10, and a grid that is 150x150:
+
+<table>
+	<tr>
+		<td>Scenario</th>
+		<td>Number of Collision Checks</th>
+		<td>Number of Arrays Created</th>	
+	</tr>
+	<tr>
+		<td>Each cell completely contains a single entity</td>
+		<td>0</td>
+		<td>Grid (1) + Columns (10) + (Columns (10) * Cells per Row (10)) = 111</td>
+	</tr>
+	<tr>
+		<td>Every entity is in the same cell</td>
+		<td>100 * 100 = 10000</td>
+		<td>Grid (1) + Column (1) + Cell (1) = 3</td>
+	</tr>
+</table>
+
+Note that in both cases, if the brute force method were used, there would be 10,000 collision checks.
+
+Hopefully you now have a basic understanding of spatial partitioning in terms of collision detection. If not, please give feedback on what could be improved!
 
 [^1]: For a great tutorial and explanation of how the SAT works, including tweakable demos, see [Metanet][].
 	
@@ -559,11 +484,4 @@ Each of these techniques has appropriate applications, and it's up to you as the
 [BSP tree]: http://en.wikipedia.org/wiki/BSP_tree
 [R-tree]: http://en.wikipedia.org/wiki/R-tree
 [Bins]: http://en.wikipedia.org/wiki/Bin_%28computational_geometry%29
-[bullet hell]: http://en.wikipedia.org/wiki/Shoot_%27em_up#.22Bullet_hell.22_evolution_and_niche_appeal
-[Florian Schornbaum]: http://www10.informatik.uni-erlangen.de/~schornbaum/
-[also available]: http://www10.informatik.uni-erlangen.de/~schornbaum/hierarchical_hash_grids_slides.pdf
-[Hierarchical Hash Grids for Coarse Collision Detection]: http://www10.informatik.uni-erlangen.de/~schornbaum/hierarchical_hash_grids.pdf
-[constant time]: http://en.wikipedia.org/wiki/Time_complexity#Constant_time
-[getImageData]: https://developer.mozilla.org/en-US/docs/HTML/Canvas/Pixel_manipulation_with_canvas#Getting_the_pixel_data_for_a_context
-[Hashing]: http://en.wikipedia.org/wiki/Hash_function
-[SHA-1]: http://en.wikipedia.org/wiki/Sha1
+[at least 100x faster]: http://jsperf.com/spatial-grid-vs-brute-force
