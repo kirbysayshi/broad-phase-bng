@@ -647,7 +647,7 @@ Grid.prototype.expandGrid = function(){
 		,currentOneDCellCount = this.oneDCellCount
 		,currentXYZHashMask = this.xyzHashMask
 		
-		,newOneDCellCount = this.oneDCount * 2
+		,newOneDCellCount = this.oneDCellCount * 2
 		,newCellCount = newOneDCellCount * newOneDCellCount * newOneDCellCount
 		
 		,newXYZHashMask = newOneDCellCount - 1
