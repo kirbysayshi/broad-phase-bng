@@ -1,7 +1,4 @@
-
 ## Broad Phase Collision Detection Using Spatial Partitioning
-
-# Two Approaches to Broad Phase Collision Detection Using Spatial Partitioning
 
 <link href="style/styles.css" rel="stylesheet" type="text/css" />
 
