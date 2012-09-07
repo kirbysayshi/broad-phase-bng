@@ -3,7 +3,7 @@
 
 # Two Approaches to Broad Phase Collision Detection Using Spatial Partitioning
 
-<link href="file:///Users/drew/Dropbox/js/broad-phase-bng/style/styles.css" rel="stylesheet" type="text/css" />
+<link href="style/styles.css" rel="stylesheet" type="text/css" />
 
 ## What is Broad-Phase Collision Detection?
 
