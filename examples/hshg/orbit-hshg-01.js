@@ -1,3 +1,4 @@
+
 var bng = {};
 
 bng.world = new ro.World( 'ro-canvas', {
@@ -15,7 +16,7 @@ bng.world = new ro.World( 'ro-canvas', {
             ,baseWidth = 10
             ,baseHeight = 10;
 
-		this.broadPhase = new ro.coltech.SpatialGrid( 0, 0, this.screen.size.x, this.screen.size.y, baseWidth * Math.SQRT2 );
+		this.broadPhase = new ro.coltech.HierarchicalSpatialHashGrid();
 
         this.baseRadius = this.screen.size.y / 2 * 1/6; // 1/6th of half of the height
         this.createRingOfEntities( 15, this.baseRadius, baseWidth, baseHeight );

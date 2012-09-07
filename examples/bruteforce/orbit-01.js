@@ -97,14 +97,14 @@ bng.world = new ro.World( 'ro-canvas', {
 bng.world.start();
 bng.world.stop();
 
-document.addEventListener( 'keydown', function(e){
-    if(e.which == 27){ // escape
+bng.world.screen.canvas.addEventListener( 'mouseover', function(e){
+	if(bng.world.isRunning !== true){
+		bng.world.start();
+	}
+}, false );
 
-        if(bng.world.isRunning === true){
-            bng.world.stop();
-        } else {
-            bng.world.start();
-        }
-
-    }
+bng.world.screen.canvas.addEventListener( 'mouseout', function(e){
+	if(bng.world.isRunning === true){
+		bng.world.stop();
+	}
 }, false );
