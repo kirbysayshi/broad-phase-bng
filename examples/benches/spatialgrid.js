@@ -1,8 +1,8 @@
-var bng = {};
+var spatial = {};
 
-bng.world = new ro.World( 'ro-canvas', {
+spatial.world = new ro.World( 'ro-canvas', {
 
-	 debug: true // enable stats
+	 debug: true
 
      ,movers: []
      ,baseRadius: 0
@@ -20,17 +20,61 @@ bng.world = new ro.World( 'ro-canvas', {
         this.baseRadius = this.screen.size.y / 2 * 1/6; // 1/6th of half of the height
         this.createRingOfEntities( 15, this.baseRadius, baseWidth, baseHeight );
 
-        // bind click event for adding more rings of boxes
-        this.screen.canvas.addEventListener('click', function(e){
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(15 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth
+			,baseHeight
+		);
 
-            self.ringCount += 1;
-            self.createRingOfEntities( 
-                 Math.floor(15 * self.ringCount * 0.65)
-                ,self.baseRadius * self.ringCount
-                ,baseWidth
-                ,baseHeight
-            );
-        })
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(15 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth * 10
+			,baseHeight * 10
+		);
+
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(15 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth * 100
+			,baseHeight * 100
+		);
+
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(15 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth * 1000
+			,baseHeight * 1000
+		);
+
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(15 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth
+			,baseHeight
+		);
+
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(15 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth
+			,baseHeight
+		);
+
+		self.ringCount += 1;
+		self.createRingOfEntities( 
+			Math.floor(150 * self.ringCount * 0.65)
+			,self.baseRadius * self.ringCount
+			,baseWidth * 1000
+			,baseHeight * 1000
+		);
     }
 
     // called at each update step
@@ -93,19 +137,3 @@ bng.world = new ro.World( 'ro-canvas', {
         }
     }
 });
-
-// draw a single frame
-bng.world.start();
-bng.world.stop();
-
-bng.world.screen.canvas.addEventListener( 'mouseover', function(e){
-	if(bng.world.isRunning !== true){
-		bng.world.start();
-	}
-}, false );
-
-bng.world.screen.canvas.addEventListener( 'mouseout', function(e){
-	if(bng.world.isRunning === true){
-		bng.world.stop();
-	}
-}, false );
