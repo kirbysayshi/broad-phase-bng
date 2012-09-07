@@ -1,4 +1,4 @@
-## Broad Phase Collision Detection Using Spatial Partitioning
+# Broad Phase Collision Detection Using Spatial Partitioning
 
 <link href="style/styles.css" rel="stylesheet" type="text/css" />
 
@@ -527,6 +527,15 @@ Updating each entity is simple. Every entity's hash is recomputed. If it differs
 
 ### But How Does It Perform?
 
+...
+
+## Closing Thoughts
+
+Each of these techniques has appropriate applications, and it's up to you as the developer to know when to use them. Here are some general recommendations:
+
+* Simple Game
+* Simulation
+* Size-restrictions
 
 [^1]: For a great tutorial and explanation of how the SAT works, including tweakable demos, see [Metanet][].
 	
