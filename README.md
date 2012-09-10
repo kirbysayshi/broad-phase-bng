@@ -1,4 +1,5 @@
-# Broad Phase Collision Detection Using Spatial Partitioning
+Broad Phase Collision Detection Using Spatial Partitioning
+============================================================
 
 <link href="style/styles.css" rel="stylesheet" type="text/css" />
 
@@ -21,23 +22,26 @@
 <!--<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/hshg/orbit-hshg-01.js"></script>
 <script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/spatial-grid/orbit-sg-01.js"></script>-->
 
-## What is Broad-Phase Collision Detection?
+Collision detection is an ongoing source of research and constant optimization in game development. It can be a source of exuberance or nearly infinite frustration. Rolling your own is typically the best way to make sure your game is never finished! However, knowing what an engine does internally to make your life easier is extremely beneficial to you as a developer. In addition to increasing your knowledge and understanding, it also helps you appreciate the hard work wrought by the giants whose shoulders you're standing on.
 
-Collision detection is an ongoing source of research and constant optimization in game development. It can be a source of exuberance or nearly infinite frustration. Rolling your own is typically the best way to make sure your game is never finished!
+This article focuses on two approaches to broad phase detection of collisions. The first is a brute force method that, while simple, quickly becomes wildly inefficient at typical game entity counts. The second is a form of spatial partitioning called a spatial grid. It is relatively simple, yet handles large numbers of game entities efficiently.
 
-However, knowing what an engine does internally to make your life easier is extremely beneficial to you as a developer. In addition to increasing your knowledge and understanding, it also helps you appreciate the hard work wrought by the giants whose shoulders you're standing on.
+What is Broad-Phase Collision Detection?
+----------------------------------------
 
-Collision detection is typically performed in two phases: _broad phase_ and _narrrow phase_. 
+Collision detection is usually performed in two phases: _broad phase_ and _narrrow phase_. 
 
-Broad phase detection is typically a computationally low cost operation that quickly answers the question, "Which objects have a strong possibility of colliding?" Approaches include [Sweep and Prune][], and [Spatial Partitioning][]: the latter is the focus of this article.
+Broad phase detection is typically a computationally low cost operation that quickly answers the question, "Which objects have a strong possibility of colliding?" Approaches include [Sweep and Prune][], and [Spatial Partitioning][].
 
 Narrow phase is the fine grained, "What part of object A colided with object B?" step. It is typically computationally intense, and thus cannot be performed on every pair of objects in the time between game updates (e.g. the next drawn frame). Examples of narrow phase techniques are the [Hyperplane Separation Theorem][] (also known as the Separating Axis Theorem) [^1], [Pixel Perfect Collision Detection][] [^2], and [Swept Tests][].
 
-## Collision Detection vs Collision Response
+Collision Detection vs Collision Response
+-----------------------------------------
 
 There are two phases when attempting to update a game world: _detection_ of the collision, followed by the _response_, or the result of that collision (e.g. two balls bounce off of each other). This article will focus exclusively on the detection of a collision, not the response.
 
-## Our World and Demos
+Our World and Demos
+-------------------
 
 The same basic setup will be used for each example of collision detection. We have a global namespace, `ro` (which is also the name of the basic engine), which will contain the following components:
 
@@ -46,7 +50,9 @@ The same basic setup will be used for each example of collision detection. We ha
 * `ro.Screen`: responsible for providing a drawing context and drawing management. Simple boxes are all that will be needed to be drawn, but separating out drawing state from the state of the world itself is good practice.
 * `ro.math`: some common math utilities, like line intersection.
 * `ro.ov3`: vector operations for generic objects with x/y properties
-* `ro.coltech`: Short for "collision technique", this namespace will hold the constructors for our collision detection interface.
+* `ro.coltech`: Short for "collision technique", this object will hold the constructors for our collision detection interface.
+
+Each demo will be using squares, and this is by no accident; most engines use a concept known as an [Axis-Aligned Bounding Box][] (AABB) to simplify and speed up broad phase detection. An AABB is a rectangular approximation for the position and amount of space an entity occupies, and can be used in both 2D and 3D. In this article's 2D demos, an AABB will be defined by two points: a minimum and maximum. Together, these can be used to extrapolate the remaining two points, but this is usually not necessary. [Axis-aligned][] implies that the sides of the box are parallel to the major axes of the coordinate system, which in the demos are positive X moving right across the screen, and positive Y moving down the screen.
 
 [JSFiddle][] will be used to sandbox the demos. This means that the following will be valid for each demo:
 
@@ -82,7 +88,7 @@ The world also uses the following order for each step of the simulation:
 
 - Clear the screen
 - Call `World.draw`
-- Accelerate all entities [^3], update their AABBs 
+- Accelerate all entities [^3], update their AABBs
 - Call the collision system's `update` method
 - Call the collision system's `queryForCollisionPairs` method
 - Call the user-defined `handleCollisions`
@@ -93,7 +99,8 @@ All demos can be stopped/paused and started by mouseover/mouseout.
 
 Let's get started!
 
-## Attempt #1: Brute Force
+Approach #1: Brute Force
+------------------------
 
 In nearly any collision detection scheme, every object must be tested or touched by code at least once. The most simple form is called a brute force test, where every object is uniquely tested (no duplication of tests) for collision with every other object. For games with very few objects, this is more than likely the fastest and simplest method. However, the computational complexity of this method increases exponentially for every object you add:
 
@@ -110,7 +117,7 @@ In nearly any collision detection scheme, every object must be tested or touched
 	</figcaption>
 </figure>
 
-This quickly becomes the biggest bottleneck of the game. But here's how to do it anyway! It is often used as an internal component of other broad phase techniques, and occasionally is the most appropriate choice for your game.
+This quickly becomes the biggest bottleneck of the game. But here's how to do it anyway! It is often used as an internal component of other broad phase techniques (and will be used in the second approach, the spatial grid), and occasionally is the most appropriate choice for your game.
 
 Brute force is accomplished by a nested loop:
 
@@ -161,15 +168,15 @@ BruteForceTech.prototype.aabb2DIntersection = function( objA, objB ){
 
 There is a small trick here to make sure we don't have to worry about testing objects more than once accidentally. The inner loop always starts at `i + 1` as opposed to `0`. This ensures that anything "behind" `i` is never touched by the inner loop. If this is confusing, the best way to understand is to work through what the loops and variables are doing using pen and paper.
 
-This method also introduces a staple of collision detection: an AABB overlap test. AABB stands for axis-aligned bounding box, and is the box that is used as a rough estimate of where and how big an entity is. It can be defined in other ways, but each entry in `ro.coltech` expects an AABB to consist of an object with `min` and `max` properties, each pointing to an array with at least 2 numbers denoting absolute coordinates:
+This method also introduces a staple of collision detection: an AABB overlap test. As mentioned earlier, AABB stands for axis-aligned bounding box, and is the box that is used as a rough estimate of where and how big an entity is. Each entry in `ro.coltech` expects an AABB to consist of an object with `min` and `max` properties, each pointing to an array with at least 2 numbers denoting absolute game world coordinates:
 
 	var myAABB = {
 		min: [ 10, 20 ], max: [ 20, 30 ]
 	}
 
-The above example describes an AABB located at `10, 20`, with a width and height of `10`.
+The above example describes an AABB located at `10, 20`, with a width and height of `10`. Because the AABBs in `ro` use absolute coordinates, they must be updated whenever the entity's position changes. This updating happens automatically in [ro.world#step][] [^4].
 
-Since the box is axis-aligned, an overlap determination is as simple as comparing the min and max points of each object respectively [^4]. Please note that this test only returns a boolean, not information about _how_ they are overlapping. The code is contained within [Fig. 2](#fig-2).
+Since the box is axis-aligned, an overlap determination is as simple as comparing the min and max points of each object respectively [^5]. Please note that this test only returns a boolean, not information about _how_ they are overlapping (_how_ they are overlapping is a job for narrow phase detection). The code is contained within [Fig. 2](#fig-2).
 
 <figure>
 	<a id="fig-3"></a>
@@ -186,30 +193,57 @@ Since the box is axis-aligned, an overlap determination is as simple as comparin
 
 [Fig. 3](#fig-3) demonstrates the result of the complete brute force technique, and visually also offers a potential optimization. In this example, all squares are being checked against all other squares, and yet only one square is actually moving. An optimization would be to construct a list of moving objects, and then compare them to all the static objects. If this is appropriate or not depends on the mechanics of the game. 
 
-## Attempt #2: Bins / Spatial Partioning / Simple Spatial Grid
+Approach #2: Bins / Spatial Partioning / Simple Spatial Grid
+------------------------------------------------------------
 
-[Spatial Partitioning][], for our purposes, is the act of dividing up a continuous space into several discrete areas based on a few simple rules (the rules change with each approach). Common techniques include a [Quadtree][], a [BSP tree][], an [R-tree][], and [Bins][] / Spatial Grids, which is the topic of this section.
+[Spatial Partitioning][], for our purposes, is the act of dividing up a continuous space into several discrete areas based on a few simple rules (the rules change with each technique for spatial partioning). Common techniques include a [Quadtree][], a [BSP tree][], an [R-tree][], and [Bins][] / Spatial Grids, which is the topic of this section.
 
-The rules of our gridding system are going to be as follows:
+The rules of our gridding system are as follows:
 
-* A cell is defined as a square having discrete boundaries (e.g. it describes an exact "piece" of space).
-* If an entity's bounding box overlaps with a cell, the entity will be inserted into that cell.
+* A cell is defined as a square having discrete boundaries (e.g. it describes an exact "piece" of space). [^6]
+* If an entity's axis-aligned bounding box overlaps with a cell, the entity will be inserted into that cell.
 * An entity can be inserted into multiple cells.
 * The grid will be discarded and rebuilt after every world update.
 * Looking for coliding pairs requires iterating over every occupied cell of the grid.
-* We must keep track of what pairs have already been tested against each other.
+* We must track which pairs have already been tested against each other.
 
-Spatial grids typically have a one-to-one mapping of world coordinates to a homogenous memory structure, represented by an array or linked list. Having a direct mapping to a physical space allows a spatial grid to be more easily visualized, aiding in debugging and understanding. Our grid will be represented by a 3D array. The indices of the first array will be columns, the indices of the inner array will be cells, and the innermost indices will be individual entities assigned to a cell:
+### Representing a Grid Cell
+
+A cell of the grid ends up as an array that contains references to all of the entities that are in that grid cell. But what defines a grid cell? What determines if an entity is "in" a cell?
+
+A spatial grid has a direct mapping to the game world. This can be visualized as drawing your game world onto graph paper. But now imagine that the graph paper's density or cell size can be changed at will, without affecting what is being drawn.
 
 <figure>
 	<a id="fig-4"></a>
-	<img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
+	<img src="images/spatial-grid-fine-grid.png" alt="A fine spatial grid"/>
 	<figcaption>
-		Fig. 4: A rectangular object whose upper left corner is positioned at { x: 20, y: 50 }. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: grid[0][B], which in actual code maps to grid[0][1].
+		Fig. 4: Entities in a game world with a spatial grid. The grey area denotes which cells are occupied by entities.
 	</figcaption>
 </figure>
 
-Mapping a position, for example `{ x: 46, y: 237 }`, can be accomplished using the following formulas:
+<figure>
+	<a id="fig-5"></a>
+	<img src="images/spatial-grid-coarse-grid.png" alt="A coarse spatial grid"/>
+	<figcaption>
+		Fig. 5: The same entities as in <a href="#fig-4">Fig. 4</a>, but with a coarse grid. Changing the cell size has no effect on how the entities are drawn or exist in the game world.
+	</figcaption>
+</figure>
+
+Therefore, a cell is simply a square of defined size. A cell is said to be occupied if an entity's AABB overlaps with the area of the cell. Notice how, in [Fig. 4](#fig-4) and [Fig. 5](#fig-5), a cell does not have to completely contain an entity.
+
+### Representing the Grid
+
+Spatial grids have a one-to-one mapping of world coordinates to a memory structure, represented by an array or linked list. Having a direct mapping to a physical space allows a spatial grid to be more easily visualized, aiding in debugging and understanding. Our grid will be represented by a 3D array. The indices of the first array will be columns, the indices of the inner array will be cells, and the innermost indices will be individual entities assigned to a cell:
+
+<figure>
+	<a id="fig-6"></a>
+	<img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
+	<figcaption>
+		Fig. 6: A rectangular object whose upper left corner is positioned at <code>{ x: 20, y: 50 }</code>. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: <code>grid[0][B]</code>, which in actual code maps to <code>grid[0][1]</code>.
+	</figcaption>
+</figure>
+
+Mapping a world position, for example `{ x: 46, y: 237 }`, can be accomplished using the following formulas:
 
 	// Math.floor( (position - gridMinimum) / gridCellSize )
 
@@ -218,68 +252,52 @@ Mapping a position, for example `{ x: 46, y: 237 }`, can be accomplished using t
 	
 	grid[col][cell] = ... // bucket to put entity into
 
-`grid.pxCellSize` is the number of pixels each cell covers. Since each cell is assumed to be square, only one value is needed. `grid.min.x/y` allows for entities to have negative positions, and still produce a valid numerical array index. Typically the grid minimum will be `{ x: 0, y: 0 }`, but you could have a grid that maps to a world like [Fig. 5](#fig-5).
-
-<figure>
-	<a id="fig-5"></a>
-	<img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
-	<figcaption>
-		Fig. 5: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.	
-	</figcaption>
-</figure>
-
-### Initialization
-
-Initialization is straightforward, and consists only of specifying the boundaries of the grid and the size of each cell: 
-
-	// taken from examples/spatial-grid/orbit-sg-01.js
-	new ro.coltech.SpatialGrid( 
-
-		0,						// minimum position
-		0, 
-
-		this.screen.size.x,		// maximum position
-		this.screen.size.y, 
-
-		baseWidth * Math.SQRT2	// cellsize
-	);
-
-Cell size is actually immensely important. In the above example, `baseWidth` is defined in the demo, because it is programmatically creating all the entities. If you define a cell size by multiplying the longest side by the square root of 2, then no entity can occupy more than 4 cells. Sometimes, however, a spatial grid will require a bit more tuning.
-
-<figure>
-	<a id="fig-6"></a>
-	<img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
-	<figcaption>
-		Fig. 6: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
-	</figcaption>
-</figure>
+`grid.pxCellSize` is the number of pixels each cell covers. Since each cell is assumed to be square, only one value is needed. `grid.min.x/y` allows for entities to have negative positions, and still produce a valid numerical array index. Typically the grid minimum will be `{ x: 0, y: 0 }`, but you could have a grid that maps to a world like [Fig. 5](#fig-7).
 
 <figure>
 	<a id="fig-7"></a>
-	<img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
+	<img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
 	<figcaption>
-		Fig. 7: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
+		Fig. 7: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.	
 	</figcaption>
 </figure>
 
-In [Fig. 6](#fig-6), the effect of a very small cell size is seen when entities are large. Each entity overlaps many cells, and because the spatial grid iterates over cells, and not entities, there is actually more work for it to do than a brute force entity-to-entity comparison.
+### Choosing an Appropriate Cell Size
 
-In [Fig. 7](#fig-7), a very large cell size is paired with small entities. In this case, only one cell will need to be visited, but each entity will need to be tested against every other entity, which is, again, the same as a brute force entity-to-entity comparison.
+Cell size is actually immensely important. In [Fig. 8](#fig-8), the effect of a very small cell size is seen when entities are large. Each entity overlaps many cells, and because the spatial grid iterates over cells, and not entities, there is actually more work for it to do than a brute force entity-to-entity comparison.
 
-Both [Fig. 6](#fig-6) and [Fig. 7](#fig-7) are worst case scenarios: the size of the entities is a complete mismatch for the size of the cells of the grid. Unfortunately, this is one of the downsides of a strict spatial grid: it must be tuned to the entities it will hold. In addition, if there are entities that vary greatly in size, it will be no more efficient (or even worse!) than a brute force comparison, as shown in [Fig. 8](#fig-8). In this case, there is no appropriate cell size, because a smaller cell size would cause too many cell-to-cell comparisons, while a large cell size would cause as many entity-to-entity checks as the brute force method.
+In [Fig. 9](#fig-9), a very large cell size is paired with small entities. In this case, only one cell will need to be visited, but each entity will need to be tested against every other entity, which is, again, the same as a brute force entity-to-entity comparison.
 
 <figure>
 	<a id="fig-8"></a>
-	<img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
+	<img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
 	<figcaption>
-		Fig. 8: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
+		Fig. 8: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
 	</figcaption>
 </figure>
 
-To demonstrate the effect cell size can have, [Fig. 9](#fig-9) allows for the cell size to be changed on the fly. In this case, all of the entities are similarly sized, so an efficient cell size can be found.
-
 <figure>
 	<a id="fig-9"></a>
+	<img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
+	<figcaption>
+		Fig. 9: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
+	</figcaption>
+</figure>
+
+Both [Fig. 8](#fig-8) and [Fig. 9](#fig-9) are worst case scenarios: the size of the entities is a complete mismatch for the size of the cells of the grid. Unfortunately, this is one of the downsides of a strict spatial grid: it must be tuned to the entities it will hold. In addition, if there are entities that vary greatly in size, it will be no more efficient (or even worse!) than a brute force comparison, as shown in [Fig. 10](#fig-10). In this case, there is no appropriate cell size, because a smaller cell size would cause too many cell-to-cell comparisons, while a large cell size would cause as many entity-to-entity checks as the brute force method.
+
+<figure>
+	<a id="fig-10"></a>
+	<img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
+	<figcaption>
+		Fig. 10: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
+	</figcaption>
+</figure>
+
+To demonstrate the effect cell size can have, [Fig. 11](#fig-11) allows for the cell size to be changed on the fly. In this case, all of the entities are similarly sized, so an efficient cell size can be found.
+
+<figure>
+	<a id="fig-11"></a>
 	<iframe 
 		style="width: 100%; height: 485px" 
 		src="http://jsfiddle.net/kirbysayshi/VEQa7/embedded/result" 
@@ -287,29 +305,29 @@ To demonstrate the effect cell size can have, [Fig. 9](#fig-9) allows for the ce
 		frameborder="0">
 	</iframe>
 	<figcaption>
-		Fig. 9: Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to visit. A large size produces many checks, but fewer cells to iterate through. Click to add more entities. Mouseover to start, mouseout to stop. 
+		Fig. 11: Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to visit. A large size produces many checks, but fewer cells to iterate through. Click to add more entities. Mouseover to start, mouseout to stop. 
 	</figcaption>
 </figure>
 
-In addition to computational power required, another concern is the memory consumption of the number of allocated cells. As the grid gets more and more fine, more memory will be allocated and released after each update, causing garbage collection churn. This can cause noticeable pauses and hiccups. While it's difficult to track using user-built tools, I recommend opening up Chrome's Memory Profiler to see the effect each cell size has on memory consumption.
+In addition to computational power required, another concern is the memory consumption of the number of allocated cells. As the grid gets more and more fine, more memory will be allocated and released after each update, causing garbage collection churn. This can cause noticeable pauses and hiccups. While it's difficult to track using user-built tools, Chrome's Memory Profiler can be used to see the effect each cell size has on memory consumption.
 
 <figure>
-	<a id="fig-10"></a>
+	<a id="fig-12"></a>
 	<img src="images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
 	<figcaption>
-		Fig. 10: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-9">Fig. 9</a>. The first event is with cell size set to the default (10 * SQRT2). Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
+		Fig. 12: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-11">Fig. 11</a>. The first event is with cell size set to the default (10 * SQRT2). Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
 	</figcaption>
 </figure>
 
-### Grid Creation / Population
+### Grid Population
 
-As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity's position has changed. The general algorithm for constructing and populating the grid is specified in [Fig. 11](#fig-11).
+As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity's position has changed. The general algorithm for constructing and populating the grid is specified in [Fig. 13](#fig-13).
 
 <figure>
-	<a id="fig-11"></a>
+	<a id="fig-13"></a>
 	<code>
 		<ul>
-			<li>determine grid width and height</li>
+			<li>determine grid width and height in number of cells</li>
 			<li>determine total number of grid cells (grid width * height)</li>
 			<li>create an array having a length equal to the grid width</li>
 			<li>for each entity:
@@ -331,16 +349,16 @@ As said before, the spatial grid is recreated for each world step. This avoids n
 		</ul>
 	</code>
 	<figcaption>
-		Fig. 11: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.update</code> method.
+		Fig. 13: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech#update</code> method.
 	</figcaption>
 </figure>
 
 ### Querying For Collision Pairs
 
-Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. [Fig. 12](#fig-12) has the full algorithm. 
+Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. [Fig. 14](#fig-14) has the full algorithm. 
 
 <figure>
-	<a id="fig-12"></a>
+	<a id="fig-14"></a>
 	<code>
 		<ul>
 			<li>For each occupied cell in the grid
@@ -356,14 +374,14 @@ Querying for collision pairs is relatively straight forward, and involves visiti
 		</ul>
 	</code>
 	<figcaption>
-		Fig. 12: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
+		Fig. 14: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
 	</figcaption>
 </figure>
 
-The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in [Fig. 13](#fig-13).
+The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in [Fig. 15](#fig-15).
 
 <figure>
-	<a id="fig-13"></a>
+	<a id="fig-15"></a>
 	<pre><code>
 World.prototype.addEntity = function(entity){
 	entity._roId = this.uniq++;
@@ -373,14 +391,14 @@ World.prototype.addEntity = function(entity){
 }
 	</code></pre>
 	<figcaption>
-		Fig. 13: Adding an entity to the game world attaches a unique id.
+		Fig. 15: Adding an entity to the game world attaches a unique id.
 	</figcaption>
 </figure>
 
 Once we have unique ids, it's trivial to track which object pairs have been tested. Each pair forms two keys, `A:B` and `B:A`. These keys are then set in an object that functions as a cache. If the keys already exist, then there is no need to test a pair.
 
 <figure>
-	<a id="fig-14"></a>
+	<a id="fig-16"></a>
 	<pre><code>
 hashA = entityA._roId + ':' + entityB._roId;
 hashB = entityB._roId + ':' + entityA._roId;
@@ -405,9 +423,11 @@ if( !checked[hashA] && !checked[hashB] ){
 		data-ghlines="137-154"
 		data-ghtabsize="2"></div>
 	<figcaption>
-		Fig. 14: Keeping a cache of tested pairs. 
+		Fig. 16: Keeping a cache of tested pairs. 
 	</figcaption>
 </figure>
+
+This cache allows the grid to perform well enough even when using a very small cell size. In that case more cache checks will be performed, which are relatively cheap compared to the brute force method that would be required if the cell size were set very large.
 
 ### Problems
 
@@ -426,25 +446,25 @@ One change that is most obvious in practice is the API of the grid itself. In a 
 
 One way around this would be to use different grids for different types of tests. For example, a single grid could be used for the player and powerups, while a second grid could be used for the player vs enemies. Another way is to cache the grand, global collision pairs result, and provide another interface. An example could be `isColliding( a, b )`, which could then loop through (or use some sort of lookup optimization) the cached result, and return true or false. 
 
-Another improvement could be to write code that could manage creating new grids for objects of varying sizes. This would greatly complicate querying for collision pairs (you would have to traverse a hierarchy of grids), as well as destroy the simplicity of the grid. 
+Another options may be to reduce the amount of discarded arrays by retaining the grid structure, and actually updating entities' positions in the structure. While this sounds great in practice, it is actually quite difficult to do in linear time. One would have to maintain a list, for each entity, of its grid locations. During the update phase, each entity would need to be removed from cells it was no longer touching, added to new cells, and also updating its list of grid locations. This adds a lot of complexity to a relatively simple idea.
 
-An initial thought may be to reduce the amount of discarded arrays by retaining the grid structure, and actually updating entities' positions in the structure. While this sounds great in practice, it's actually quite difficult to do in linear time. One would have to maintain a list, for each entity, of its grid locations. During the update phase, it would need to be removed from cells it was no longer touching, and added to new cells. This adds a lot of complexity to a relatively simple idea.
+As an alternative, each entity could be limited to a single cell. Then, at query time, the cells that the entity overlaps could be calculated relatively easily, and all the entities contained within could be tested. The cache of checked pairs would still have to be kept. This would greatly simplify the update phase, while increasing the computational cost of the query phase.
 
-As an alternative, each entity could be limited to a single cell. Then, at query time, the cells that the entity overlaps could be calculated relatively easily, and all the entities contained within could be tested. The cache of checked pairs would still have to be kept, but this would greatly simplify the update phase, while increasing the computational cost of the query phase.
+An enterprising developer might be thinking, "What about writing code that manages querying and creating grids for objects of varying size?" Definitely attempt the challenge! But this would greatly complicate querying for collision pairs (you would have to traverse a hierarchy of grids), as well as destroy the simplicity of the grid.
 
 ## Closing Thoughts
 
 There are few reasons to use brute force instead of a spatial grid. At the worst case, the spatial grid will devolve into the same performance as the brute force, but in the best case be [at least 100x faster][], usually more.
 
-A situation where a spatial grid would be inappropriate are when memory usage, garbage collection churn, or code size is a concern (such as for a contest). The memory usage of a spatial grid is minimal, but it's definitely more than the brute force method. I can think of few situations where it would actually matter. The grid is relatively deterministic in its extreme cases, given set variables, such as number of entities, cell size, and grid dimensions.
+A situation where a spatial grid would be inappropriate are when memory usage, garbage collection churn, or code size is a concern (such as for a contest). The memory usage of a spatial grid is minimal, but it's definitely more than the brute force method. The grid is relatively deterministic in its extreme cases, given set variables, such as number of entities, cell size, and grid dimensions.
 
 For example, given a cell size of 15, 100 entities each 10x10, and a grid that is 150x150:
 
 <table>
 	<tr>
-		<td>Scenario</th>
-		<td>Number of Collision Checks</th>
-		<td>Number of Arrays Created</th>	
+		<th>Scenario</th>
+		<th>Number of Collision Checks</th>
+		<th>Number of Arrays Created</th>	
 	</tr>
 	<tr>
 		<td>Each cell completely contains a single entity</td>
@@ -468,7 +488,11 @@ Hopefully you now have a basic understanding of spatial partitioning in terms of
 
 [^3]: Ro uses a technique called verlet integration, as opposed to Euler (pronounced "oiler") integration. This provides for a more stable update step, and allows us to simply move the entities to a valid position as a collision response. You may notice that the entities do not have a `velocity` property; verlet integration stores this implicitely, as the difference between `pos` and `ppos` (previous position).
 
-[^4]: This is actually a special case of the [Hyperplane Separation Theorem][]. It is greatly simplified because the separating axes are always parallel to the X and Y axes. This test actually projects the positions of each matching side of each AABB. This can be thought of as flattening the 2D boxes to 1D for each axis. If the projections overlap, there is an intersection!
+[^4]: AABBs can also be defined as a set of relative coordinates. To transform them to absolute coordinates, they merely need to be added to the current absolute position of the entity.
+
+[^5]: This is actually a special case of the [Hyperplane Separation Theorem][]. It is greatly simplified because the separating axes are always parallel to the X and Y axes. This test actually projects the positions of each matching side of each AABB. This can be thought of as flattening the 2D boxes to 1D for each axis. If the projections overlap, there is an intersection!
+
+[^6]: A spatial grid does not have to be made of square cells. If your game or simulation were populated with oblong shapes, a rectangle could be more appropriate, and does not add too much code complication.
 
 [Sweep and Prune]: http://en.wikipedia.org/wiki/Sweep_and_prune
 [Spatial Partitioning]: http://en.wikipedia.org/wiki/Space_partitioning
@@ -478,6 +502,9 @@ Hopefully you now have a basic understanding of spatial partitioning in terms of
 [Metanet]: http://www.metanetsoftware.com/technique/tutorialB.html
 [Hyperplane Separation Theorem]: http://en.wikipedia.org/wiki/Hyperplane_separation_theorem
 
+[Axis-Aligned Bounding Box]: https://citational.com/v/5p9/axis-aligned-bounding-box
+[Axis-aligned]: http://en.wikipedia.org/wiki/Axis-aligned_object
+[ro.world#step]: https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.world.js
 [Swept Tests]: http://www.gamasutra.com/view/feature/3383/simple_intersection_tests_for_games.php
 [JSFiddle]: http://jsfiddle.net/
 [Quadtree]: http://en.wikipedia.org/wiki/Quadtree
