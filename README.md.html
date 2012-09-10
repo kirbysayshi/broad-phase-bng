@@ -219,41 +219,15 @@ BruteForceTech.prototype.aabb2DIntersection = function( objA, objB ){
 <li>Looking for coliding pairs requires iterating over every occupied cell of the grid.</li>
 <li>We must track which pairs have already been tested against each other.</li>
 </ul>
-<h3>Representing a Grid Cell</h3>
-<p>A cell of the grid ends up as an array that contains references to all of the entities that are in that grid cell. But what defines a grid cell? What determines if an entity is &quot;in&quot; a cell?
-
-</p>
-<p>A spatial grid has a direct mapping to the game world. This can be visualized as drawing your game world onto graph paper. But now imagine that the graph paper&#39;s density or cell size can be changed at will, without affecting what is being drawn.
-
-</p>
-<figure>
-    <a id="fig-4"></a>
-    <img src="images/spatial-grid-fine-grid.png" alt="A fine spatial grid"/>
-    <figcaption>
-        Fig. 4: Entities in a game world with a spatial grid. The grey area denotes which cells are occupied by entities.
-    </figcaption>
-</figure>
-
-<figure>
-    <a id="fig-5"></a>
-    <img src="images/spatial-grid-coarse-grid.png" alt="A coarse spatial grid"/>
-    <figcaption>
-        Fig. 5: The same entities as in <a href="#fig-4">Fig. 4</a>, but with a coarse grid. Changing the grid size has no effect on how the entities are drawn or exist in the game world.
-    </figcaption>
-</figure>
-
-<p>Therefore, a cell is simply a square of defined size. A cell is said to be occupied if an entity&#39;s AABB overlaps with the area of the cell. Notice how, in <a href="#fig-4">Fig. 4</a> and <a href="#fig-5">Fig. 5</a>, a cell does not have to completely contain an entity.
-
-</p>
 <h3>Representing the Grid</h3>
 <p>Spatial grids have a one-to-one mapping of world coordinates to a memory structure, represented by an array or linked list. Having a direct mapping to a physical space allows a spatial grid to be more easily visualized, aiding in debugging and understanding. Our grid will be represented by a 3D array. The indices of the first array will be columns, the indices of the inner array will be cells, and the innermost indices will be individual entities assigned to a cell:
 
 </p>
 <figure>
-    <a id="fig-6"></a>
+    <a id="fig-4"></a>
     <img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
     <figcaption>
-        Fig. 6: A rectangular object whose upper left corner is positioned at <code>{ x: 20, y: 50 }</code>. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: <code>grid[0][B]</code>, which in actual code maps to <code>grid[0][1]</code>.
+        Fig. 4: A rectangular object whose upper left corner is positioned at <code>{ x: 20, y: 50 }</code>. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: <code>grid[0][B]</code>, which in actual code maps to <code>grid[0][1]</code>.
     </figcaption>
 </figure>
 
@@ -270,51 +244,51 @@ grid[col][cell] = ... // bucket to put entity into</code></pre>
 
 </p>
 <figure>
-    <a id="fig-7"></a>
+    <a id="fig-5"></a>
     <img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
     <figcaption>
-        Fig. 7: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.<br>    </figcaption>
+        Fig. 5: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.<br>    </figcaption>
 </figure>
 
 <h3>Choosing an Appropriate Cell Size</h3>
-<p>Cell size is actually immensely important. In <a href="#fig-8">Fig. 8</a>, the effect of a very small cell size is seen when entities are large. Each entity overlaps many cells, and because the spatial grid iterates over cells, and not entities, there is actually more work for it to do than a brute force entity-to-entity comparison.
+<p>Cell size plays a large role in how efficient the grid can be. In <a href="#fig-6">Fig. 6</a>, the effect of a very small cell size is seen when entities are large. Each entity overlaps many cells, and because the spatial grid iterates over cells, and not entities, there is actually more work for it to do than a brute force entity-to-entity comparison.
 
 </p>
-<p>In <a href="#fig-9">Fig. 9</a>, a very large cell size is paired with small entities. In this case, only one cell will need to be visited, but each entity will need to be tested against every other entity, which is, again, the same as a brute force entity-to-entity comparison.
+<p>In <a href="#fig-7">Fig. 7</a>, a very large cell size is paired with small entities. In this case, only one cell will need to be visited, but each entity will need to be tested against every other entity, which is, again, the same as a brute force entity-to-entity comparison.
+
+</p>
+<figure>
+    <a id="fig-6"></a>
+    <img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
+    <figcaption>
+        Fig. 6: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
+    </figcaption>
+</figure>
+
+<figure>
+    <a id="fig-7"></a>
+    <img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
+    <figcaption>
+        Fig. 7: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
+    </figcaption>
+</figure>
+
+<p>Both <a href="#fig-6">Fig. 6</a> and <a href="#fig-7">Fig. 7</a> are worst case scenarios: the size of the entities is a complete mismatch for the size of the cells of the grid. Unfortunately, this is one of the downsides of a strict spatial grid: it must be tuned to the entities it will hold. In addition, if there are entities that vary greatly in size, it can be worse than a brute force comparison, as shown in <a href="#fig-8">Fig. 8</a>. In this case, there is no appropriate cell size. A smaller cell size would cause too many cell-to-cell comparisons, while a large cell size would cause as many entity-to-entity checks as the brute force method.
 
 </p>
 <figure>
     <a id="fig-8"></a>
-    <img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
-    <figcaption>
-        Fig. 8: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
-    </figcaption>
-</figure>
-
-<figure>
-    <a id="fig-9"></a>
-    <img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
-    <figcaption>
-        Fig. 9: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
-    </figcaption>
-</figure>
-
-<p>Both <a href="#fig-8">Fig. 8</a> and <a href="#fig-9">Fig. 9</a> are worst case scenarios: the size of the entities is a complete mismatch for the size of the cells of the grid. Unfortunately, this is one of the downsides of a strict spatial grid: it must be tuned to the entities it will hold. In addition, if there are entities that vary greatly in size, it will be no more efficient (or even worse!) than a brute force comparison, as shown in <a href="#fig-10">Fig. 10</a>. In this case, there is no appropriate cell size, because a smaller cell size would cause too many cell-to-cell comparisons, while a large cell size would cause as many entity-to-entity checks as the brute force method.
-
-</p>
-<figure>
-    <a id="fig-10"></a>
     <img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
     <figcaption>
-        Fig. 10: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
+        Fig. 8: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
     </figcaption>
 </figure>
 
-<p>To demonstrate the effect cell size can have, <a href="#fig-11">Fig. 11</a> allows for the cell size to be changed on the fly. In this case, all of the entities are similarly sized, so an efficient cell size can be found.
+<p>To demonstrate the effect cell size can have, <a href="#fig-9">Fig. 9</a> allows for the cell size to be changed on the fly. In this case, all of the entities are similarly sized, so an efficient cell size can be found.
 
 </p>
 <figure>
-    <a id="fig-11"></a>
+    <a id="fig-9"></a>
     <iframe 
         style="width: 100%; height: 485px" 
         src="http://jsfiddle.net/kirbysayshi/VEQa7/embedded/result" 
@@ -322,7 +296,7 @@ grid[col][cell] = ... // bucket to put entity into</code></pre>
         frameborder="0">
     </iframe>
     <figcaption>
-        Fig. 11: Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to visit. A large size produces many checks, but fewer cells to iterate through. Click to add more entities. Mouseover to start, mouseout to stop. 
+        Fig. 9: Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to visit. A large size produces many checks, but fewer cells to iterate through. Click to add more entities. Mouseover to start, mouseout to stop. 
     </figcaption>
 </figure>
 
@@ -330,19 +304,19 @@ grid[col][cell] = ... // bucket to put entity into</code></pre>
 
 </p>
 <figure>
-    <a id="fig-12"></a>
+    <a id="fig-10"></a>
     <img src="images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
     <figcaption>
-        Fig. 12: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-11">Fig. 11</a>. The first event is with cell size set to the default (10 * SQRT2). Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
+        Fig. 10: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-9">Fig. 9</a>. The first event is with cell size set to the default (10 * SQRT2). Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
     </figcaption>
 </figure>
 
 <h3>Grid Population</h3>
-<p>As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity&#39;s position has changed. The general algorithm for constructing and populating the grid is specified in <a href="#fig-13">Fig. 13</a>.
+<p>As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity&#39;s position has changed. The general algorithm for constructing and populating the grid is specified in <a href="#fig-11">Fig. 11</a>.
 
 </p>
 <figure>
-    <a id="fig-13"></a>
+    <a id="fig-11"></a>
     <code>
         <ul>
             <li>determine grid width and height in number of cells</li>
@@ -367,16 +341,16 @@ grid[col][cell] = ... // bucket to put entity into</code></pre>
         </ul>
     </code>
     <figcaption>
-        Fig. 13: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech#update</code> method.
+        Fig. 11: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech#update</code> method.
     </figcaption>
 </figure>
 
 <h3>Querying For Collision Pairs</h3>
-<p>Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. <a href="#fig-14">Fig. 14</a> has the full algorithm. 
+<p>Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. <a href="#fig-12">Fig. 12</a> has the full algorithm. 
 
 </p>
 <figure>
-    <a id="fig-14"></a>
+    <a id="fig-12"></a>
     <code>
         <ul>
             <li>For each occupied cell in the grid
@@ -392,15 +366,15 @@ grid[col][cell] = ... // bucket to put entity into</code></pre>
         </ul>
     </code>
     <figcaption>
-        Fig. 14: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
+        Fig. 12: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
     </figcaption>
 </figure>
 
-<p>The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in <a href="#fig-15">Fig. 15</a>.
+<p>The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in <a href="#fig-13">Fig. 13</a>.
 
 </p>
 <figure>
-    <a id="fig-15"></a>
+    <a id="fig-13"></a>
     <pre><code>
 World.prototype.addEntity = function(entity){
     entity._roId = this.uniq++;
@@ -410,7 +384,7 @@ World.prototype.addEntity = function(entity){
 }
     </code></pre>
     <figcaption>
-        Fig. 15: Adding an entity to the game world attaches a unique id.
+        Fig. 13: Adding an entity to the game world attaches a unique id.
     </figcaption>
 </figure>
 
@@ -418,19 +392,15 @@ World.prototype.addEntity = function(entity){
 
 </p>
 <figure>
-    <a id="fig-16"></a>
+    <a id="fig-14"></a>
     <pre><code>
 hashA = entityA._roId + &#39;:&#39; + entityB._roId;
 hashB = entityB._roId + &#39;:&#39; + entityA._roId;
-
-this.hashChecks += 2;
 
 if( !checked[hashA] &amp;&amp; !checked[hashB] ){
 
     // mark this pair as checked
     checked[hashA] = checked[hashB] = true;
-
-    this.collisionTests += 1;
 
     if( this.aabb2DIntersection( entityA, entityB ) ){
         pairs.push( [entityA, entityB] );
@@ -443,7 +413,7 @@ if( !checked[hashA] &amp;&amp; !checked[hashB] ){
         data-ghlines="137-154"
         data-ghtabsize="2"></div>
     <figcaption>
-        Fig. 16: Keeping a cache of tested pairs. 
+        Fig. 14: Keeping a cache of tested pairs. 
     </figcaption>
 </figure>
 
