@@ -41,31 +41,31 @@ Each demo will be using squares, and this is by no accident; most engines use a 
 [JSFiddle][] will be used to sandbox the demos. This means that the following will be valid for each demo:
 
 <table>
-	<tr>
-		<th>Variable Path</th>
-		<th>Instance Type</th>
-		<th>Description</th>
-	</tr>
-	<tr>
-		<td><code>bng</code></td>
-		<td><code>Object</code></td>
-		<td>A namespace for our demo instances</td>
-	</tr>
-	<tr>
-		<td><code>bng.world</code></td>
-		<td><code>ro.World</code></td>
-		<td>Global reference to the world</td>
-	</tr>
-	<tr>
-		<td><code>bng.world.screen</code></td>
-		<td><code>ro.Screen</code></td>
-		<td>Global reference to the screen (canvas and canvas 2D context)</td>
-	</tr>
-	<tr>
-		<td><code>ov3</code></td>
-		<td><code>Object</code></td>
-		<td>References ro.ov3, for vector operations</td>
-	</tr>
+    <tr>
+        <th>Variable Path</th>
+        <th>Instance Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td><code>bng</code></td>
+        <td><code>Object</code></td>
+        <td>A namespace for our demo instances</td>
+    </tr>
+    <tr>
+        <td><code>bng.world</code></td>
+        <td><code>ro.World</code></td>
+        <td>Global reference to the world</td>
+    </tr>
+    <tr>
+        <td><code>bng.world.screen</code></td>
+        <td><code>ro.Screen</code></td>
+        <td>Global reference to the screen (canvas and canvas 2D context)</td>
+    </tr>
+    <tr>
+        <td><code>ov3</code></td>
+        <td><code>Object</code></td>
+        <td>References ro.ov3, for vector operations</td>
+    </tr>
 </table>
 
 The world also uses the following order for each step of the simulation:
@@ -89,15 +89,15 @@ Approach #1: Brute Force
 In nearly any collision detection scheme, every object must be tested or touched by code at least once. The most simple form is called a brute force test, where every object is uniquely tested (no duplication of tests) for collision with every other object. For games with very few objects, this is more than likely the fastest and simplest method. However, the computational complexity of this method increases exponentially for every object you add:
 
 <figure id="fig-1">
-	<iframe
-		style="width: 100%; height: 465px"
-		src="http://jsfiddle.net/kirbysayshi/qHj77/embedded/result"
-		allowfullscreen="allowfullscreen"
-		frameborder="0">
-	</iframe>
-	<figcaption>
-		Fig. 1: A graph of the number of checks required for brute force collision as the number of entities increases. For only 100 entities, nearly 5000 collision checks are required.
-	</figcaption>
+    <iframe
+        style="width: 100%; height: 465px"
+        src="http://jsfiddle.net/kirbysayshi/qHj77/embedded/result"
+        allowfullscreen="allowfullscreen"
+        frameborder="0">
+    </iframe>
+    <figcaption>
+        Fig. 1: A graph of the number of checks required for brute force collision as the number of entities increases. For only 100 entities, nearly 5000 collision checks are required.
+    </figcaption>
 </figure>
 
 This quickly becomes the biggest bottleneck of the game. But here's how to do it anyway! It is often used as an internal component of other broad phase techniques (and will be used in the second approach, the spatial grid), and occasionally is the most appropriate choice for your game.
@@ -105,71 +105,71 @@ This quickly becomes the biggest bottleneck of the game. But here's how to do it
 Brute force is accomplished by a nested loop:
 
 <figure id="fig-2">
-	<pre><code>
+    <pre><code>
 BruteForceTech.prototype.queryForCollisionPairs = function(){
 
-	var i, j, e1, e2, pairs = [], entityLen = this.entities.length;
+    var i, j, e1, e2, pairs = [], entityLen = this.entities.length;
 
-	this.collisionTests = 0;
+    this.collisionTests = 0;
 
-	for( i = 0; i &lt; entityLen; i++ ){
-		e1 = this.entities[i];
+    for( i = 0; i &lt; entityLen; i++ ){
+        e1 = this.entities[i];
 
-		for( j = i+1; j &lt; entityLen; j++ ){
-			e2 = this.entities[j];
+        for( j = i+1; j &lt; entityLen; j++ ){
+            e2 = this.entities[j];
 
-			this.collisionTests += 1;
+            this.collisionTests += 1;
 
-			if( this.aabb2DIntersection(e1, e2) === true ){
-				pairs.push( [e1, e2] );
-			}
-		}
-	}
+            if( this.aabb2DIntersection(e1, e2) === true ){
+                pairs.push( [e1, e2] );
+            }
+        }
+    }
 
-	return pairs;
+    return pairs;
 }
 
 BruteForceTech.prototype.aabb2DIntersection = function( objA, objB ){
-	var  a = objA.getAABB()
-		,b = objB.getAABB();
+    var  a = objA.getAABB()
+        ,b = objB.getAABB();
 
-	if(
-		a.min[0] &gt; b.max[0] || a.min[1] &gt; b.max[1]
-		|| a.max[0] &lt; b.min[0] || a.max[1] &lt; b.min[1]
-	){
-		return false;
-	} else {
-		return true;
-	}
+    if(
+        a.min[0] &gt; b.max[0] || a.min[1] &gt; b.max[1]
+        || a.max[0] &lt; b.min[0] || a.max[1] &lt; b.min[1]
+    ){
+        return false;
+    } else {
+        return true;
+    }
 }
-	</code></pre>
-	<figcaption>
-		Fig. 2: Two functions demonstrating brute force collision detection iteration and an AABB overlap test.
-	</figcaption>
+    </code></pre>
+    <figcaption>
+        Fig. 2: Two functions demonstrating brute force collision detection iteration and an AABB overlap test.
+    </figcaption>
 </figure>
 
 There is a small trick here to make sure we don't have to worry about testing objects more than once accidentally. The inner loop always starts at `i + 1` as opposed to `0`. This ensures that anything "behind" `i` is never touched by the inner loop. If this is confusing, the best way to understand is to work through what the loops and variables are doing using pen and paper.
 
 This method also introduces a staple of collision detection: an AABB overlap test. As mentioned earlier, AABB stands for axis-aligned bounding box, and is the box that is used as a rough estimate of where and how big an entity is. Each entry in `ro.coltech` expects an AABB to consist of an object with `min` and `max` properties, each pointing to an array with at least 2 numbers denoting absolute game world coordinates:
 
-	var myAABB = {
-		min: [ 10, 20 ], max: [ 20, 30 ]
-	}
+    var myAABB = {
+        min: [ 10, 20 ], max: [ 20, 30 ]
+    }
 
 The above example describes an AABB located at `10, 20`, with a width and height of `10`. Because the AABBs in `ro` use absolute coordinates, they must be updated whenever the entity's position changes. This updating happens automatically in [ro.world#step][] [^4].
 
 Since the box is axis-aligned, an overlap determination is as simple as comparing the min and max points of each object respectively [^5]. Please note that this test only returns a boolean, not information about _how_ they are overlapping (_how_ they are overlapping is a job for narrow phase detection). The code is contained within [Fig. 2](#fig-2).
 
 <figure id="fig-3">
-	<iframe
-		style="width: 100%; height: 480px"
-		src="http://jsfiddle.net/kirbysayshi/tMCFJ/embedded/result"
-		allowfullscreen="allowfullscreen"
-		frameborder="0">
-	</iframe>
-	<figcaption>
-		Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more and watch the framerate fall (eventually). Mouseover to start, mouseout to stop.
-	</figcaption>
+    <iframe
+        style="width: 100%; height: 480px"
+        src="http://jsfiddle.net/kirbysayshi/tMCFJ/embedded/result"
+        allowfullscreen="allowfullscreen"
+        frameborder="0">
+    </iframe>
+    <figcaption>
+        Fig. 3: Brute force collision in action! The colliding squares are darker. Click to add more and watch the framerate fall (eventually). Mouseover to start, mouseout to stop.
+    </figcaption>
 </figure>
 
 [Fig. 3](#fig-3) demonstrates the result of the complete brute force technique, and visually also offers a potential optimization. In this example, all squares are being checked against all other squares, and yet only one square is actually moving. An optimization would be to construct a list of moving objects, and then compare them to all the static objects. If this is appropriate or not depends on the mechanics of the game.
@@ -193,28 +193,28 @@ The rules of our gridding system are as follows:
 Spatial grids have a one-to-one mapping of world coordinates to a memory structure, represented by an array or linked list. Having a direct mapping to a physical space allows a spatial grid to be more easily visualized, aiding in debugging and understanding. Our grid will be represented by a 3D array. The indices of the first array will be columns, the indices of the inner array will be cells, and the innermost indices will be individual entities assigned to a cell:
 
 <figure id="fig-4">
-	<img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
-	<figcaption>
-		Fig. 4: A rectangular object whose upper left corner is positioned at <code>{ x: 20, y: 50 }</code>. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: <code>grid[0][B]</code>, which in actual code maps to <code>grid[0][1]</code>.
-	</figcaption>
+    <img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
+    <figcaption>
+        Fig. 4: A rectangular object whose upper left corner is positioned at <code>{ x: 20, y: 50 }</code>. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: <code>grid[0][B]</code>, which in actual code maps to <code>grid[0][1]</code>.
+    </figcaption>
 </figure>
 
 Mapping a world position, for example `{ x: 46, y: 237 }`, can be accomplished using the following formulas:
 
-	// Math.floor( (position - gridMinimum) / gridCellSize )
+    // Math.floor( (position - gridMinimum) / gridCellSize )
 
-	var  col = Math.floor( (46 - grid.min.x) / grid.pxCellSize )
-		,cell = Math.floor( (237 - grid.min.y) / grid.pxCellSize );
+    var  col = Math.floor( (46 - grid.min.x) / grid.pxCellSize )
+        ,cell = Math.floor( (237 - grid.min.y) / grid.pxCellSize );
 
-	grid[col][cell] = ... // bucket to put entity into
+    grid[col][cell] = ... // bucket to put entity into
 
 `grid.pxCellSize` is the number of pixels each cell covers. Since each cell is assumed to be square, only one value is needed. `grid.min.x/y` allows for entities to have negative positions, and still produce a valid numerical array index. Typically the grid minimum will be `{ x: 0, y: 0 }`, but you could have a grid that maps to a world like [Fig. 5](#fig-7).
 
 <figure id="fig-5">
-	<img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
-	<figcaption>
-		Fig. 5: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.
-	</figcaption>
+    <img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
+    <figcaption>
+        Fig. 5: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.
+    </figcaption>
 </figure>
 
 ### Choosing an Appropriate Cell Size
@@ -224,49 +224,49 @@ Cell size plays a large role in how efficient the grid can be. In [Fig. 6](#fig-
 In [Fig. 7](#fig-7), a very large cell size is paired with small entities. In this case, only one cell will need to be visited, but each entity will need to be tested against every other entity, which is, again, the same as a brute force entity-to-entity comparison.
 
 <figure id="fig-6">
-	<img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
-	<figcaption>
-		Fig. 6: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
-	</figcaption>
+    <img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
+    <figcaption>
+        Fig. 6: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
+    </figcaption>
 </figure>
 
 <figure id="fig-7">
-	<img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
-	<figcaption>
-		Fig. 7: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
-	</figcaption>
+    <img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
+    <figcaption>
+        Fig. 7: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
+    </figcaption>
 </figure>
 
 Both [Fig. 6](#fig-6) and [Fig. 7](#fig-7) are worst case scenarios: the size of the entities is a complete mismatch for the size of the cells of the grid. Unfortunately, this is one of the downsides of a strict spatial grid: it must be tuned to the entities it will hold. In addition, if there are entities that vary greatly in size, it can be worse than a brute force comparison, as shown in [Fig. 8](#fig-8). In this case, there is no appropriate cell size. A smaller cell size would cause too many cell-to-cell comparisons, while a large cell size would cause as many entity-to-entity checks as the brute force method.
 
 <figure id="fig-8">
-	<img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
-	<figcaption>
-		Fig. 8: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
-	</figcaption>
+    <img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
+    <figcaption>
+        Fig. 8: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
+    </figcaption>
 </figure>
 
 To demonstrate the effect cell size can have, [Fig. 9](#fig-9) allows for the cell size to be changed on the fly. In this case, all of the entities are similarly sized, so an efficient cell size can be found.
 
 <figure id="fig-9">
-	<iframe
-		style="width: 100%; height: 485px"
-		src="http://jsfiddle.net/kirbysayshi/VEQa7/embedded/result"
-		allowfullscreen="allowfullscreen"
-		frameborder="0">
-	</iframe>
-	<figcaption>
-		Fig. 9: Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to visit. A large size produces many checks, but fewer cells to iterate through. Click to add more entities. Mouseover to start, mouseout to stop.
-	</figcaption>
+    <iframe
+        style="width: 100%; height: 485px"
+        src="http://jsfiddle.net/kirbysayshi/VEQa7/embedded/result"
+        allowfullscreen="allowfullscreen"
+        frameborder="0">
+    </iframe>
+    <figcaption>
+        Fig. 9: Using a spatial grid, the number of collision checks can be reduced. The three buttons change the size of the internal buckets used to group entities. A very small size produces few checks, but potentially many cells to visit. A large size produces many checks, but fewer cells to iterate through. Click to add more entities. Mouseover to start, mouseout to stop.
+    </figcaption>
 </figure>
 
 In addition to computational power required, another concern is the memory consumption of the number of allocated cells. As the grid gets more and more fine, more memory will be allocated and released after each update, causing garbage collection churn. This can cause noticeable pauses and hiccups. While it's difficult to track using user-built tools, Chrome's Memory Profiler can be used to see the effect each cell size has on memory consumption.
 
 <figure id="fig-10">
-	<img src="images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
-	<figcaption>
-		Fig. 10: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-9">Fig. 9</a>. The first event is with cell size set to the default. Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
-	</figcaption>
+    <img src="images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
+    <figcaption>
+        Fig. 10: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-9">Fig. 9</a>. The first event is with cell size set to the default. Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
+    </figcaption>
 </figure>
 
 ### Grid Population
@@ -274,32 +274,32 @@ In addition to computational power required, another concern is the memory consu
 As said before, the spatial grid is recreated for each world step. This avoids needing to keep track of updating which cells an entity is overlapping once the entity's position has changed. The general algorithm for constructing and populating the grid is specified in [Fig. 11](#fig-11).
 
 <figure id="fig-11">
-	<code>
-		<ul>
-			<li>determine grid width and height in number of cells</li>
-			<li>determine total number of grid cells (grid width * height)</li>
-			<li>create an array having a length equal to the grid width</li>
-			<li>for each entity:
-				<ul>
-					<li>find which columns and rows the entity overlaps</li>
-					<li>for each column the entity overlaps:
-						<ul>
-							<li>ensure the column contains an array, each index is a cell </li>
-							<li>for each cell in this column that the entity overlaps:
-								<ul>
-									<li>ensure there is an array to hold entities</li>
-									<li>insert entity into the array of entities</li>
-								</ul>
-							</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-		</ul>
-	</code>
-	<figcaption>
-		Fig. 11: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech#update</code> method.
-	</figcaption>
+    <code>
+        <ul>
+            <li>determine grid width and height in number of cells</li>
+            <li>determine total number of grid cells (grid width * height)</li>
+            <li>create an array having a length equal to the grid width</li>
+            <li>for each entity:
+                <ul>
+                    <li>find which columns and rows the entity overlaps</li>
+                    <li>for each column the entity overlaps:
+                        <ul>
+                            <li>ensure the column contains an array, each index is a cell </li>
+                            <li>for each cell in this column that the entity overlaps:
+                                <ul>
+                                    <li>ensure there is an array to hold entities</li>
+                                    <li>insert entity into the array of entities</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </code>
+    <figcaption>
+        Fig. 11: Algorithmic view of the construction and population of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech#update</code> method.
+    </figcaption>
 </figure>
 
 ### Querying For Collision Pairs
@@ -307,66 +307,66 @@ As said before, the spatial grid is recreated for each world step. This avoids n
 Querying for collision pairs is relatively straight forward, and involves visiting each occupied cell of the grid, and comparing all objects in that cell with each other. [Fig. 12](#fig-12) has the full algorithm.
 
 <figure id="fig-12">
-	<code>
-		<ul>
-			<li>For each occupied cell in the grid
-				<ul>
-					<li>Compare each entity in the cell with every other
-						<ul>
-							<li>Check if this pair has been tested before</li>
-							<li>If not, check this pair, and mark them as tested</li>
-						</ul>
-					</li>
-				</ul>
-			</li>
-		</ul>
-	</code>
-	<figcaption>
-		Fig. 12: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
-	</figcaption>
+    <code>
+        <ul>
+            <li>For each occupied cell in the grid
+                <ul>
+                    <li>Compare each entity in the cell with every other
+                        <ul>
+                            <li>Check if this pair has been tested before</li>
+                            <li>If not, check this pair, and mark them as tested</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </code>
+    <figcaption>
+        Fig. 12: Algorithmic view of the querying of the spatial grid. The actual code is defined in <a href="https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.coltech.spatial-grid.js"><code>lib/ro.coltech.spatial-grid.js</code></a>, in the <code>SpatialGridTech.prototype.queryForCollisionPairs</code> method.
+    </figcaption>
 </figure>
 
 The only tricky part of the algorithm is making sure that each pair is only tested once. This is easily done by ensuring that each entity has some way to uniquely identify it, aside from a strict object comparison. The easiest way to manage this in the context of a game engine is to assign an internal number to each entity when it is added to the game world, as shown in [Fig. 13](#fig-13).
 
 <figure id="fig-13">
-	<pre><code>
+    <pre><code>
 World.prototype.addEntity = function(entity){
-	entity._roId = this.uniq++;
-	entity.world = this;
-	this.entities.push( entity );
-	this.broadPhase.addEntity( entity );
+    entity._roId = this.uniq++;
+    entity.world = this;
+    this.entities.push( entity );
+    this.broadPhase.addEntity( entity );
 }
-	</code></pre>
-	<figcaption>
-		Fig. 13: Adding an entity to the game world attaches a unique id.
-	</figcaption>
+    </code></pre>
+    <figcaption>
+        Fig. 13: Adding an entity to the game world attaches a unique id.
+    </figcaption>
 </figure>
 
 Once we have unique ids, it's trivial to track which object pairs have been tested. Each pair forms two keys, `A:B` and `B:A`. These keys are then set in an object that functions as a cache. If the keys already exist, then there is no need to test a pair.
 
 <figure id="fig-14">
-	<pre><code>
+    <pre><code>
 hashA = entityA._roId + ':' + entityB._roId;
 hashB = entityB._roId + ':' + entityA._roId;
 
 if( !checked[hashA] &amp;&amp; !checked[hashB] ){
 
-	// mark this pair as checked
-	checked[hashA] = checked[hashB] = true;
+    // mark this pair as checked
+    checked[hashA] = checked[hashB] = true;
 
-	if( this.aabb2DIntersection( entityA, entityB ) ){
-		pairs.push( [entityA, entityB] );
-	}
+    if( this.aabb2DIntersection( entityA, entityB ) ){
+        pairs.push( [entityA, entityB] );
+    }
 }
-	</code></pre>
-	<div
-		data-ghpath="lib/ro.coltech.spatial-grid.js"
-		data-ghuserrepo="kirbysayshi/broad-phase-bng"
-		data-ghlines="137-154"
-		data-ghtabsize="2"></div>
-	<figcaption>
-		Fig. 14: Keeping a cache of tested pairs.
-	</figcaption>
+    </code></pre>
+    <div
+        data-ghpath="lib/ro.coltech.spatial-grid.js"
+        data-ghuserrepo="kirbysayshi/broad-phase-bng"
+        data-ghlines="137-154"
+        data-ghtabsize="2"></div>
+    <figcaption>
+        Fig. 14: Keeping a cache of tested pairs.
+    </figcaption>
 </figure>
 
 This cache allows the grid to perform well enough even when using a very small cell size. In that case more cache checks will be performed, which are relatively cheap compared to the brute force method that would be required if the cell size were set very large.
@@ -403,21 +403,21 @@ A situation where a spatial grid would be inappropriate are when memory usage, g
 For example, given a cell size of 15, 100 entities each 10x10, and a grid that is 150x150:
 
 <table>
-	<tr>
-		<th>Scenario</th>
-		<th>Number of Collision Checks</th>
-		<th>Number of Arrays Created</th>
-	</tr>
-	<tr>
-		<td>Each cell completely contains a single entity</td>
-		<td>0</td>
-		<td>Grid (1) + Columns (10) + (Columns (10) * Cells per Row (10)) = 111</td>
-	</tr>
-	<tr>
-		<td>Every entity is in the same cell</td>
-		<td>100 * 100 = 10000</td>
-		<td>Grid (1) + Column (1) + Cell (1) = 3</td>
-	</tr>
+    <tr>
+        <th>Scenario</th>
+        <th>Number of Collision Checks</th>
+        <th>Number of Arrays Created</th>
+    </tr>
+    <tr>
+        <td>Each cell completely contains a single entity</td>
+        <td>0</td>
+        <td>Grid (1) + Columns (10) + (Columns (10) * Cells per Row (10)) = 111</td>
+    </tr>
+    <tr>
+        <td>Every entity is in the same cell</td>
+        <td>100 * 100 = 10000</td>
+        <td>Grid (1) + Column (1) + Cell (1) = 3</td>
+    </tr>
 </table>
 
 Note that in both cases, if the brute force method were used, there would be 10,000 collision checks.
