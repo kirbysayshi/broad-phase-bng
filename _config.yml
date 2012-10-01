@@ -1,5 +1,5 @@
 pygments: true
-permalink: ":title.html"
+permalink: "/:title.html"
 url: http://kirbysayshi.github.com/broad-phase-bng
 name: Broad Phase Collision Detection
 description: Draft location for collision detection articles
