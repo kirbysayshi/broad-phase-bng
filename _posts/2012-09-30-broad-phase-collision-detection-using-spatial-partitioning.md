@@ -1,6 +1,7 @@
 ---
 title: Broad Phase Collision Detection Using Spatial Partitioning
 layout: default
+kshbase: http://kirbysayshi.github.com/broad-phase-bng
 ---
 
 Broad Phase Collision Detection Using Spatial Partitioning
@@ -193,7 +194,7 @@ The rules of our gridding system are as follows:
 Spatial grids have a one-to-one mapping of world coordinates to a memory structure, represented by an array or linked list. Having a direct mapping to a physical space allows a spatial grid to be more easily visualized, aiding in debugging and understanding. Our grid will be represented by a 3D array. The indices of the first array will be columns, the indices of the inner array will be cells, and the innermost indices will be individual entities assigned to a cell:
 
 <figure id="fig-4">
-    <img src="images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
+    <img src="{{ page.kshbase }}/images/spatial-grid-array-mapping.png" alt="Mapping space to an array" />
     <figcaption>
         Fig. 4: A rectangular object whose upper left corner is positioned at <code>{ x: 20, y: 50 }</code>. It overlaps six grid cells, and is thus added to each. While letters (A, B, etc.) are not actually used in code, they are used here to reduce ambiguity between rows and columns. The cell that contains the upper left corner of the entity is: <code>grid[0][B]</code>, which in actual code maps to <code>grid[0][1]</code>.
     </figcaption>
@@ -211,7 +212,7 @@ Mapping a world position, for example `{ x: 46, y: 237 }`, can be accomplished u
 `grid.pxCellSize` is the number of pixels each cell covers. Since each cell is assumed to be square, only one value is needed. `grid.min.x/y` allows for entities to have negative positions, and still produce a valid numerical array index. Typically the grid minimum will be `{ x: 0, y: 0 }`, but you could have a grid that maps to a world like [Fig. 5](#fig-7).
 
 <figure id="fig-5">
-    <img src="images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
+    <img src="{{ page.kshbase }}/images/spatial-grid-offset.png" alt="A grid mapped to a world by an offset" />
     <figcaption>
         Fig. 5: The grid, defined in grey, is offset from the origin, specified by having a non-zero min property. Accounting for this offset allows for entities with negative positions to still produce valid array indices.
     </figcaption>
@@ -224,14 +225,14 @@ Cell size plays a large role in how efficient the grid can be. In [Fig. 6](#fig-
 In [Fig. 7](#fig-7), a very large cell size is paired with small entities. In this case, only one cell will need to be visited, but each entity will need to be tested against every other entity, which is, again, the same as a brute force entity-to-entity comparison.
 
 <figure id="fig-6">
-    <img src="images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
+    <img src="{{ page.kshbase }}/images/spatial-grid-cs-too-small.png" alt="A spatial grid with inappropriately large entities for its cell size."/>
     <figcaption>
         Fig. 6: A spatial grid with inappropriately large entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
     </figcaption>
 </figure>
 
 <figure id="fig-7">
-    <img src="images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
+    <img src="{{ page.kshbase }}/images/spatial-grid-cs-too-large.png" alt="A spatial grid with inappropriately small entities for its cell size."/>
     <figcaption>
         Fig. 7: A spatial grid with inappropriately small entities for its cell size. The grey area denotes which cells will need to be visited to test for collisions.
     </figcaption>
@@ -240,7 +241,7 @@ In [Fig. 7](#fig-7), a very large cell size is paired with small entities. In th
 Both [Fig. 6](#fig-6) and [Fig. 7](#fig-7) are worst case scenarios: the size of the entities is a complete mismatch for the size of the cells of the grid. Unfortunately, this is one of the downsides of a strict spatial grid: it must be tuned to the entities it will hold. In addition, if there are entities that vary greatly in size, it can be worse than a brute force comparison, as shown in [Fig. 8](#fig-8). In this case, there is no appropriate cell size. A smaller cell size would cause too many cell-to-cell comparisons, while a large cell size would cause as many entity-to-entity checks as the brute force method.
 
 <figure id="fig-8">
-    <img src="images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
+    <img src="{{ page.kshbase }}/images/spatial-grid-cs-worst-case.png" alt="A spatial grid with entities that an appropriate cell size cannot be found."/>
     <figcaption>
         Fig. 8: A spatial grid with entities for which an appropriate cell size cannot be found. The grey area denotes which cells will need to be visited to test for collisions.
     </figcaption>
@@ -263,7 +264,7 @@ To demonstrate the effect cell size can have, [Fig. 9](#fig-9) allows for the ce
 In addition to computational power required, another concern is the memory consumption of the number of allocated cells. As the grid gets more and more fine, more memory will be allocated and released after each update, causing garbage collection churn. This can cause noticeable pauses and hiccups. While it's difficult to track using user-built tools, Chrome's Memory Profiler can be used to see the effect each cell size has on memory consumption.
 
 <figure id="fig-10">
-    <img src="images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
+    <img src="{{ page.kshbase }}/images/spatial-grid-memory-usage.png" alt="Garbage collection and memory consumption under different cell sizes"/>
     <figcaption>
         Fig. 10: This graph from the Chrome Developer Tools shows three primary mouse events, which correlate to the mouse activating the demo shown in <a href="#fig-9">Fig. 9</a>. The first event is with cell size set to the default. Notice how memory usage initially grows (the demo intialized), but then remains relatively low with even GC churn. The second event denotes a cell size of 1. Notice how memory usage jumps greatly, and is much more spiky (this is more pronounced with a wider graph). This means that more memory is being used, but is also being discarded, causing Chrome to garbage collect more frequently. The final event denotes a cell size of 50, which shows memory usage increasing at a much slower rate, thus needing to be collected more infrequently.
     </figcaption>
