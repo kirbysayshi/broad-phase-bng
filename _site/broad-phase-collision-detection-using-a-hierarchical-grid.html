@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Broad-phase-bng by kirbysayshi</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Broad-phase-bng</h1>
+        <p>Materials for an article on Broad Phase Collision Detection for BuildNewGames</p>
+
+        <p class="view"><a href="https://github.com/kirbysayshi/broad-phase-bng">View the Project on GitHub <small>kirbysayshi/broad-phase-bng</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/kirbysayshi/broad-phase-bng/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/kirbysayshi/broad-phase-bng/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/kirbysayshi/broad-phase-bng">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+<h2 id='attempt_3_hierarchical_spatial_hash_grids'>Attempt #3: Hierarchical Spatial Hash Grids</h2>
+
+<p>When entities greatly differ in size, or perhaps when the size of entities is not known initially, a more advanced form of spatial grid is required: a hierarchical spatial hash grid, or HSHG. This advanced grid retains several features from the basic spatial grid, but also greatly improves capabilities (with a marked rise in complexity).</p>
+
+<p>I found this grid technique described in a paper by <a href='http://www10.informatik.uni-erlangen.de/~schornbaum/'>Florian Schornbaum</a> (slides are <a href='http://www10.informatik.uni-erlangen.de/~schornbaum/hierarchical_hash_grids_slides.pdf'>also available</a>) titled <em><a href='http://www10.informatik.uni-erlangen.de/~schornbaum/hierarchical_hash_grids.pdf'>Hierarchical Hash Grids for Coarse Collision Detection</a></em>. The paper is relatively long (51 pages), and goes into great depth on the specifics and implementation of a 3D HSHG in C++. I will provide an overview of the most important concepts in 2D (the HSHG implementation also works just fine in 3D) to get a feel for why Florian&#8217;s grid is so awesome.</p>
+
+<h3 id='the_name_hierarchical_who_now'>The Name: Hierarchical Who Now?</h3>
+
+<p>The name is a mouthful, but actually describes what is going on.</p>
+
+<ul>
+<li><strong>Hierarchical</strong>: usually denotes that items have an aspect of hierarchy. This means they can be classified as being &#8220;above&#8221; or &#8220;below&#8221;, or &#8220;greater&#8221; or &#8220;lesser&#8221; compared to each other. In this case, it means an ordered series of grids by cell size.</li>
+
+<li><strong>Spatial</strong>: this means the same as for our basic spatial grid. Physical positions in our game world will be mapped to specific cells of the grid.</li>
+
+<li><strong>Hash</strong>: this describes the method of how positions will be mapped to the cells of the grid. The positions will be hashed, or run through a particular mathematical calculation that will normalize the values.</li>
+
+<li><strong>Grid</strong>: yep, it&#8217;s a grid! Actually it&#8217;s several grids internally, but will be interacted with as if it were one.</li>
+</ul>
+
+<h3 id='and_it_does_what_now'>And It Does What Now?</h3>
+
+<p>At the core, the HSHG is a series of spatial grids, each with different cell sizes. Grids are only created as necessary, meaning that the HSHG is perfectly tailored to the entities it holds: no tuning necessary! Because there are multiple cell sizes, the issue of very large vs. vary small entities is relatively moot.</p>
+
+<p>There are several tricks used internally to ensure that the minimal amount of memory is used, with grids, cells, and entity containers only being intialized when necessary.</p>
+
+<p>Adding entities and removing entities is also guaranteed to occur in <a href='http://en.wikipedia.org/wiki/Time_complexity#Constant_time'>constant time</a>, meaning that no matter how many entities are added to the grid, removal and addition will always take the same amount of time to complete.</p>
+
+<h3 id='spatial_hashing'>Spatial Hashing</h3>
+
+<p>A key difference between the simple spatial grid and the HSHG is how they map physical space, e.g. a position, to logical space, e.g. a data structure. The spatial grid has a one-to-one mapping, making it simple to visualize. The HSHG uses a more complex mapping, which allows for any position to be converted to a simple array index.</p>
+
+<p><a href='http://en.wikipedia.org/wiki/Hash_function'>Hashing</a> is the process of taking a large range of data values, and mapping them to a smaller range of keys. For example, <a href='http://en.wikipedia.org/wiki/Sha1'>SHA-1</a> takes practically any data and transforms it to a 160-bit value, thus reducing the possible range.</p>
+
+<p>The HSHG&#8217;s hashing function does the same thing, but maps a nearly infinte range of positions (limited only by the precision of the data types) to a fixed set of array indexes. It also accounts for negative positions.</p>
+<figure>
+	<a id='fig-14' />
+	<pre><code>
+if(x &lt; 0){
+	i = (-x) / cellsize;
+	xHash = cellcount - 1 - ( Math.floor(i) % x_cellcount );
+} else {
+	i = x / cellsize;
+	xHash = Math.floor(i) % x_cellcount;
+}
+	</code></pre>
+	<figcaption>
+		Fig. 14: How the hashing function logically works for a single dimension. The real function avoids division (not a significant optimization in JavaScript) and uses mathematical properties to replace the modulo operation with a bitwise AND. This requires that the dimensions of the grid are always a power of two.
+	</figcaption>
+</figure>
+<p>So great, but what does that mean in practice? <a href='#fig-14'>Fig. 14</a> shows the results of the hashing function when applied to a continuous range of one-dimensional positions. It does this for three different cell sizes, which hopefully shows that as the cell size increases, so do the range of values a single cell can hold.</p>
+<figure>
+	<a id='fig-14' />
+	<iframe frameborder='0' src='http://jsfiddle.net/kirbysayshi/2PBAs/embedded/result' style='width: 100%; height: 465px' allowfullscreen='allowfullscreen'>
+	</iframe>
+	<figcaption>Fig. 14: A graph of the hashing function used in the HSHG. Notice how the positions (X axis) "bucket" themselves.</figcaption>
+</figure>
+<p>Values become grouped or bucketed together, which allows them to be mapped to an array index. This form of hashing, unlike SHA-1, maintains a relationship, meaning that hashes near each other in value are also near each other spatially, as <a href='#fig-15'>fig. 15</a> demonstrates.</p>
+<figure>
+	<a id='fig-15' />
+	<img alt='Mapping linear indexes to space' src='images/hshg-linear-indexing.png' />
+	<figcaption>
+		Fig. 15: A grid with defined boundaries can be mapped to a linear array via hash values. In this example, the grid is 7 cells wide by 5 cells tall, and each cell is displaying an example hash value. Notice how the hash values are not random, and in fact maintain their spatial relevance (e.g. cell 15 is next to cell 16).
+	</figcaption>
+</figure>
+<p>But what is the appropriate size for this array?</p>
+
+<h3 id='grid_density'>Grid Density</h3>
+
+<p>The HSHG must use powers of two as the internal grid dimensions (see <a href='#fig-14'>Fig. 14</a>) due to the hashing function used. A grid will initially be 16x16, meaning an array with length 256. Each time an entity is added to the HSHG, the density of the grid is tracked. When the number of entities divided by number of cells is greater than a certain value (1/8 by default), the grid is emptied, all data structures are freed (or attempted to be free), the grid is expanded by a factor of two in each dimension (total cells increase by a factor of 4 in 2D), and all entities are reinserted. This prevents too many objects from being mapped to the same grid cell. If many entities were mapped to the same cell, then the detection step would devolve into the brute force method.</p>
+
+<h3 id='adding_an_entity'>Adding An Entity</h3>
+
+<p>When an entity is added to the HSHG, a series of internal actions take place:</p>
+
+<ul>
+<li>
+<p>Does a grid exist that contains appropriately-sized cells?</p>
+
+<ul>
+<li>Yes? Insert the entity</li>
+
+<li>No? Create a grid</li>
+</ul>
+</li>
+</ul>
+
+<p>In the event that a grid does not exist, the HSHG has to determine an appropriate cell size. It does this by taking the longest side of the entity&#8217;s AABB, and multiplying it by the square root of a value called the <em>hierarchy factor</em>. By default, this factor is 2, but can be tweaked. This means that each successive grid will have a cell size two times larger than the previous.</p>
+
+<p>An entity is added both to an internal &#8220;global objects&#8221; list, as well as to an individual cell&#8217;s object list. Each of these indices are stored. This way, when an entity needs to be removed from the grid, it is a simple matter of replacing the entity&#8217;s position in these lists with the last entity in the list. This ensures <a href='http://en.wikipedia.org/wiki/Time_complexity#Constant_time'>constant time</a>.</p>
+<figure>
+	<a id='fig-16' />
+	<img alt='Removing an element from an array in constant time' src='images/hshg-removing-element.png' />
+	<figcaption>
+		Fig. 16: In this array, the element at index 2 is being removed. Instead of using `splice`, the HSHG ensures constant time by taking the last element of the array, and inserting it at index 2 via a simple property assignment. The element formerly known as 6 is then marked as being element 2.
+	</figcaption>
+</figure>
+<h3 id='querying_for_collision_pairs'>Querying for Collision Pairs</h3>
+
+<p>Querying for collision pairs is where things get a little tricky. With the basic spatial grid, each entity was added to all the cells it overlapped, and then a list was maintained to prevent duplicate tests. With the HSHG, an entity is only added to <em>one</em> cell, and, due to a special iteration scheme, no list of &#8220;checked&#8221; pairs must be maintained.</p>
+<figure>
+	<a id='fig-17' />
+	<img alt='Visiting cells in a special order prevents duplicate checks.' src='images/hshg-cell-visitation.png' />
+	<figcaption>
+		Fig. 17: Each pink cell is tested against each grey cell, with each grid demonstrating the next cell to be visited. When x is visited, it is checked against cells 1, 2, 3, and 4. It is only checked against cells 5, 6, 7, and 8 when those cells are visited. This diagram is reproduced nearly verbatim from the original paper.
+	</figcaption>
+</figure>
+<p>As <a href='#fig-17'>Fig. 17</a> shows, when each occupied cell is visited, it is constantly &#8220;looking back&#8221; at occupied cells behind it. This ensures that cells are never checked against each other more than once.</p>
+
+<p>Because the HSHG actually has multiple grids contained within it, entities must also be checked against entities in other grids. The grids are ordered by cell size ascending. As long as small entities are always checked against bigger entities, duplicate checks should be avoided.</p>
+<figure>
+	<a id='fig-18' />
+	<img alt='Grid hierarchies require working up the grids' src='images/hshg-detection-hierarchy.png' />
+	<figcaption>
+		Fig. 18: This denotes a one dimensional (in terms of position) hierarchy of grids. The first group demonstrates how, when the cell containing A is checked for collisions, it must work its way up the hierarchy of grids. The second group demonstrates checking the cell containing B. Notice how B is not checked against A twice, because the checks always travel "up" the hierarchy.
+	</figcaption>
+</figure>
+<h3 id='updating_the_entities'>Updating the Entities</h3>
+
+<p>Updating each entity is simple. Every entity&#8217;s hash is recomputed. If it differs from its hash, then it is removed from the grid, and re-added. This is in stark contrast to the simple grid method, which actually destroyed the entire grid structure for every update.</p>
+
+<h3 id='but_how_does_it_perform'>But How Does It Perform?</h3>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/kirbysayshi">kirbysayshi</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>

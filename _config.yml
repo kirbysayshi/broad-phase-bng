@@ -1,0 +1,6 @@
+pygments: true
+permalink: /:title.html
+name: Broad Phase Collision Detection
+description: Draft location for collision detection articles
+markdown: maruku
+exclude: ['node_modules']

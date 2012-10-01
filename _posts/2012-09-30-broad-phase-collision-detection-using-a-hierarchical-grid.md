@@ -1,3 +1,8 @@
+---
+title: Broad Phase Collision Detection Using a Hierarchical Grid
+layout: default
+---
+
 ## Attempt #3: Hierarchical Spatial Hash Grids
 
 When entities greatly differ in size, or perhaps when the size of entities is not known initially, a more advanced form of spatial grid is required: a hierarchical spatial hash grid, or HSHG. This advanced grid retains several features from the basic spatial grid, but also greatly improves capabilities (with a marked rise in complexity).
@@ -32,7 +37,7 @@ The HSHG's hashing function does the same thing, but maps a nearly infinte range
 <figure>
 	<a id="fig-14"></a>
 	<pre><code>
-if(x < 0){
+if(x &lt; 0){
 	i = (-x) / cellsize;
 	xHash = cellcount - 1 - ( Math.floor(i) % x_cellcount );
 } else {
