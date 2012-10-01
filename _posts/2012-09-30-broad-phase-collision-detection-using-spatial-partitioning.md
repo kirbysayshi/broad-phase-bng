@@ -6,28 +6,6 @@ layout: default
 Broad Phase Collision Detection Using Spatial Partitioning
 ============================================================
 
-
-<!--<link href="style/styles.css" rel="stylesheet" type="text/css" />
-
-<canvas id="ro-canvas" width="546" height="410"></canvas>
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/Stats.js"></script>
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/vendor/hshg.js"></script>
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.math.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.world.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.brute-force.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.hshg.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.coltech.spatial-grid.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.screen.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.entity.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/lib/ro.input.js"></script>
-
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/hshg/orbit-hshg-01.js"></script>
-<script type="text/javascript" src="file:///Users/drew/Dropbox/js/broad-phase-bng/examples/spatial-grid/orbit-sg-01.js"></script>-->
-
 Collision detection is an ongoing source of research and constant optimization in game development. It can be a source of exuberance or nearly infinite frustration. Rolling your own is typically the best way to make sure your game is never finished! However, knowing what an engine does internally to make your life easier is extremely beneficial to you as a developer. In addition to increasing your knowledge and understanding, it also helps you appreciate the hard work wrought by the giants whose shoulders you're standing on.
 
 This article focuses on two approaches to broad phase detection of collisions. The first is a brute force method that, while simple, quickly becomes wildly inefficient at typical game entity counts. The second is a form of spatial partitioning called a spatial grid. It is relatively simple, yet handles large numbers of game entities efficiently.
