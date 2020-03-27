@@ -1,7 +1,7 @@
 ---
 title: Broad Phase Collision Detection Using Spatial Partitioning
 layout: default
-kshbase: http://kirbysayshi.github.com/broad-phase-bng
+kshbase: https://kirbysayshi.github.com/broad-phase-bng
 ---
 
 Broad Phase Collision Detection Using Spatial Partitioning
