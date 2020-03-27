@@ -92,7 +92,7 @@ In nearly any collision detection scheme, every object must be tested or touched
 <figure id="fig-1">
     <iframe
         style="width: 100%; height: 465px"
-        src="http://jsfiddle.net/kirbysayshi/qHj77/embedded/result"
+        src="https://jsfiddle.net/kirbysayshi/qHj77/embedded/result"
         allowfullscreen="allowfullscreen"
         frameborder="0">
     </iframe>
@@ -164,7 +164,7 @@ Since the box is axis-aligned, an overlap determination is as simple as comparin
 <figure id="fig-3">
     <iframe
         style="width: 100%; height: 480px"
-        src="http://jsfiddle.net/kirbysayshi/tMCFJ/embedded/result"
+        src="https://jsfiddle.net/kirbysayshi/tMCFJ/embedded/result"
         allowfullscreen="allowfullscreen"
         frameborder="0">
     </iframe>
@@ -252,7 +252,7 @@ To demonstrate the effect cell size can have, [Fig. 9](#fig-9) allows for the ce
 <figure id="fig-9">
     <iframe
         style="width: 100%; height: 485px"
-        src="http://jsfiddle.net/kirbysayshi/VEQa7/embedded/result"
+        src="https://jsfiddle.net/kirbysayshi/VEQa7/embedded/result"
         allowfullscreen="allowfullscreen"
         frameborder="0">
     </iframe>
@@ -437,21 +437,21 @@ Hopefully you now have a basic understanding of spatial partitioning in terms of
 
 [^6]: A spatial grid does not have to be made of square cells. If your game or simulation were populated with oblong shapes, a rectangle could be more appropriate, and does not add too much code complication.
 
-[Sweep and Prune]: http://en.wikipedia.org/wiki/Sweep_and_prune
-[Spatial Partitioning]: http://en.wikipedia.org/wiki/Space_partitioning
+[Sweep and Prune]: https://en.wikipedia.org/wiki/Sweep_and_prune
+[Spatial Partitioning]: https://en.wikipedia.org/wiki/Space_partitioning
 [Pixel Perfect Collision Detection]: http://troygilbert.com/2009/08/pixel-perfect-collision-detection-revisited/
 [NES]: http://nocash.emubase.de/everynes.htm
 [Gameduino]: http://excamera.com/sphinx/gameduino/samples/jkcollision/index.html
 [Metanet]: http://www.metanetsoftware.com/technique/tutorialB.html
-[Hyperplane Separation Theorem]: http://en.wikipedia.org/wiki/Hyperplane_separation_theorem
+[Hyperplane Separation Theorem]: https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
 
 [Axis-Aligned Bounding Box]: https://citational.com/v/5p9/axis-aligned-bounding-box
-[Axis-aligned]: http://en.wikipedia.org/wiki/Axis-aligned_object
+[Axis-aligned]: https://en.wikipedia.org/wiki/Axis-aligned_object
 [ro.world#step]: https://github.com/kirbysayshi/broad-phase-bng/blob/master/lib/ro.world.js
-[Swept Tests]: http://www.gamasutra.com/view/feature/3383/simple_intersection_tests_for_games.php
-[JSFiddle]: http://jsfiddle.net/
-[Quadtree]: http://en.wikipedia.org/wiki/Quadtree
-[BSP tree]: http://en.wikipedia.org/wiki/BSP_tree
-[R-tree]: http://en.wikipedia.org/wiki/R-tree
-[Bins]: http://en.wikipedia.org/wiki/Bin_%28computational_geometry%29
+[Swept Tests]: https://www.gamasutra.com/view/feature/3383/simple_intersection_tests_for_games.php
+[JSFiddle]: https://jsfiddle.net/
+[Quadtree]: https://en.wikipedia.org/wiki/Quadtree
+[BSP tree]: https://en.wikipedia.org/wiki/BSP_tree
+[R-tree]: https://en.wikipedia.org/wiki/R-tree
+[Bins]: https://en.wikipedia.org/wiki/Bin_%28computational_geometry%29
 [at least 100x faster]: http://jsperf.com/spatial-grid-vs-brute-force
