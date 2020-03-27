@@ -56,7 +56,7 @@ So great, but what does that mean in practice? [Fig. 14](#fig-14) shows the resu
 	<a id="fig-14"></a>
 	<iframe 
 		style="width: 100%; height: 465px" 
-		src="http://jsfiddle.net/kirbysayshi/2PBAs/embedded/result" 
+		src="https://jsfiddle.net/kirbysayshi/2PBAs/embedded/result" 
 		allowfullscreen="allowfullscreen" 
 		frameborder="0">
 	</iframe>
@@ -132,7 +132,7 @@ Updating each entity is simple. Every entity's hash is recomputed. If it differs
 [Florian Schornbaum]: http://www10.informatik.uni-erlangen.de/~schornbaum/
 [also available]: http://www10.informatik.uni-erlangen.de/~schornbaum/hierarchical_hash_grids_slides.pdf
 [Hierarchical Hash Grids for Coarse Collision Detection]: http://www10.informatik.uni-erlangen.de/~schornbaum/hierarchical_hash_grids.pdf
-[constant time]: http://en.wikipedia.org/wiki/Time_complexity#Constant_time
+[constant time]: https://en.wikipedia.org/wiki/Time_complexity#Constant_time
 [getImageData]: https://developer.mozilla.org/en-US/docs/HTML/Canvas/Pixel_manipulation_with_canvas#Getting_the_pixel_data_for_a_context
-[Hashing]: http://en.wikipedia.org/wiki/Hash_function
-[SHA-1]: http://en.wikipedia.org/wiki/Sha1
+[Hashing]: https://en.wikipedia.org/wiki/Hash_function
+[SHA-1]: https://en.wikipedia.org/wiki/Sha1
