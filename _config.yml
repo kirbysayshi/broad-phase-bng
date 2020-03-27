@@ -1,7 +1,5 @@
-pygments: true
 permalink: "/:title.html"
-url: http://kirbysayshi.github.com/broad-phase-bng
+url: https://kirbysayshi.github.com/broad-phase-bng
 name: Broad Phase Collision Detection
 description: Draft location for collision detection articles
-markdown: maruku
 exclude: ['node_modules']
